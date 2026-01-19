@@ -135,6 +135,19 @@ const translations = {
         'settings.description': 'A modern fleet management solution',
         'settings.storageUsed': 'Storage used',
 
+        // Avrios Import
+        'settings.avrios': 'Avrios Import',
+        'settings.avriosImport': 'Import from Avrios',
+        'settings.avriosImportDesc': 'Import vehicles from an Avrios CSV export file',
+        'settings.avriosSelectFile': 'Select CSV',
+        'settings.avriosHint': 'Export your vehicles from Avrios as CSV, then upload here. Supported fields: License Plate, Make, Model, Year, VIN, Mileage, Fuel Type.',
+
+        // Toast Messages - Avrios
+        'toast.avriosNoVehicles': 'No vehicles found in CSV file',
+        'toast.avriosImportSuccess': '{count} vehicles imported successfully',
+        'toast.avriosImportPartial': '{success} vehicles imported, {error} failed',
+        'toast.avriosImportError': 'Error importing CSV file',
+
         // Vehicle Modal
         'vehicleModal.addTitle': 'Add New Vehicle',
         'vehicleModal.editTitle': 'Edit Vehicle',
@@ -378,6 +391,19 @@ const translations = {
         'settings.version': 'Version 1.0.0',
         'settings.description': 'Eine moderne Fuhrparkverwaltungslösung',
         'settings.storageUsed': 'Speicher verwendet',
+
+        // Avrios Import
+        'settings.avrios': 'Avrios Import',
+        'settings.avriosImport': 'Von Avrios importieren',
+        'settings.avriosImportDesc': 'Fahrzeuge aus einer Avrios CSV-Exportdatei importieren',
+        'settings.avriosSelectFile': 'CSV auswählen',
+        'settings.avriosHint': 'Exportieren Sie Ihre Fahrzeuge aus Avrios als CSV und laden Sie sie hier hoch. Unterstützte Felder: Kennzeichen, Hersteller, Modell, Baujahr, FIN, Kilometerstand, Kraftstoffart.',
+
+        // Toast Messages - Avrios
+        'toast.avriosNoVehicles': 'Keine Fahrzeuge in der CSV-Datei gefunden',
+        'toast.avriosImportSuccess': '{count} Fahrzeuge erfolgreich importiert',
+        'toast.avriosImportPartial': '{success} Fahrzeuge importiert, {error} fehlgeschlagen',
+        'toast.avriosImportError': 'Fehler beim Importieren der CSV-Datei',
 
         // Vehicle Modal
         'vehicleModal.addTitle': 'Neues Fahrzeug hinzufügen',
@@ -687,7 +713,13 @@ async function loadAllData() {
         if (documentsRes.data) state.documents = documentsRes.data.map(mapDocumentFromDB);
         if (maintenanceRes.data) state.maintenance = maintenanceRes.data.map(mapMaintenanceFromDB);
         if (settingsRes.data && settingsRes.data[0]) {
+            // Preserve language from localStorage before overwriting settings
+            const preservedLanguage = localStorage.getItem('fuhrparkpro_language');
             state.settings = mapSettingsFromDB(settingsRes.data[0]);
+            // Restore language from localStorage (localStorage is authoritative for language)
+            if (preservedLanguage && (preservedLanguage === 'en' || preservedLanguage === 'de')) {
+                state.settings.language = preservedLanguage;
+            }
         }
     } catch (error) {
         console.error('Error loading data:', error);
@@ -1960,6 +1992,268 @@ async function importData(event) {
     event.target.value = '';
 }
 
+// ============================================
+// Avrios CSV Import
+// ============================================
+async function importFromAvrios(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const csvText = e.target.result;
+            const vehicles = parseAvriosCSV(csvText);
+
+            if (vehicles.length === 0) {
+                showToast(t('toast.avriosNoVehicles'), 'error');
+                return;
+            }
+
+            // Import vehicles to Supabase
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const vehicle of vehicles) {
+                try {
+                    const dbData = mapVehicleToDB(vehicle);
+                    const { error } = await supabaseClient
+                        .from('vehicles')
+                        .insert([dbData]);
+
+                    if (error) {
+                        console.error('Error importing vehicle:', error);
+                        errorCount++;
+                    } else {
+                        successCount++;
+                    }
+                } catch (err) {
+                    console.error('Error importing vehicle:', err);
+                    errorCount++;
+                }
+            }
+
+            // Reload data and update UI
+            await loadAllData();
+            renderVehicles();
+            updateDashboard();
+            updateVehicleSelects();
+
+            if (errorCount === 0) {
+                showToast(t('toast.avriosImportSuccess').replace('{count}', successCount), 'success');
+            } else {
+                showToast(t('toast.avriosImportPartial').replace('{success}', successCount).replace('{error}', errorCount), 'warning');
+            }
+        } catch (error) {
+            console.error('Error parsing CSV:', error);
+            showToast(t('toast.avriosImportError'), 'error');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+function parseAvriosCSV(csvText) {
+    const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+    if (lines.length < 2) return [];
+
+    // Parse header row
+    const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+
+    // Field mapping: Avrios/German field names -> FuhrparkPro fields
+    const fieldMap = {
+        // License plate variations
+        'kennzeichen': 'licensePlate',
+        'license plate': 'licensePlate',
+        'license_plate': 'licensePlate',
+        'nummernschild': 'licensePlate',
+        'plate': 'licensePlate',
+
+        // Make/Brand variations
+        'hersteller': 'make',
+        'make': 'make',
+        'marke': 'make',
+        'brand': 'make',
+        'manufacturer': 'make',
+
+        // Model variations
+        'modell': 'model',
+        'model': 'model',
+        'fahrzeugmodell': 'model',
+
+        // Year variations
+        'baujahr': 'year',
+        'year': 'year',
+        'erstzulassung': 'year',
+        'first registration': 'year',
+        'registration year': 'year',
+        'jahr': 'year',
+
+        // VIN variations
+        'fin': 'vin',
+        'vin': 'vin',
+        'fahrgestellnummer': 'vin',
+        'vehicle identification number': 'vin',
+        'chassis number': 'vin',
+
+        // Mileage variations
+        'kilometerstand': 'mileage',
+        'mileage': 'mileage',
+        'km': 'mileage',
+        'kilometer': 'mileage',
+        'laufleistung': 'mileage',
+        'odometer': 'mileage',
+
+        // Fuel type variations
+        'kraftstoff': 'fuelType',
+        'fuel': 'fuelType',
+        'fuel type': 'fuelType',
+        'fuel_type': 'fuelType',
+        'kraftstoffart': 'fuelType',
+        'antrieb': 'fuelType',
+
+        // Vehicle type variations
+        'fahrzeugtyp': 'type',
+        'type': 'type',
+        'vehicle type': 'type',
+        'vehicle_type': 'type',
+        'kategorie': 'type',
+        'category': 'type',
+
+        // Color variations
+        'farbe': 'color',
+        'color': 'color',
+        'colour': 'color',
+
+        // Status variations
+        'status': 'status',
+        'zustand': 'status',
+        'state': 'status',
+
+        // Notes variations
+        'notizen': 'notes',
+        'notes': 'notes',
+        'bemerkungen': 'notes',
+        'comments': 'notes',
+        'anmerkungen': 'notes'
+    };
+
+    // Map CSV headers to our fields
+    const headerMapping = headers.map(header => fieldMap[header] || null);
+
+    // Parse data rows
+    const vehicles = [];
+    for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        if (values.length === 0) continue;
+
+        const vehicle = {
+            status: 'active' // Default status
+        };
+
+        headerMapping.forEach((field, index) => {
+            if (field && values[index]) {
+                let value = values[index].trim();
+
+                // Process specific fields
+                if (field === 'year') {
+                    // Extract year from date or year string
+                    const yearMatch = value.match(/\d{4}/);
+                    value = yearMatch ? parseInt(yearMatch[0]) : null;
+                } else if (field === 'mileage') {
+                    // Remove non-numeric characters
+                    value = parseInt(value.replace(/[^\d]/g, '')) || null;
+                } else if (field === 'fuelType') {
+                    // Normalize fuel type
+                    value = normalizeFuelType(value);
+                } else if (field === 'type') {
+                    // Normalize vehicle type
+                    value = normalizeVehicleType(value);
+                } else if (field === 'status') {
+                    // Normalize status
+                    value = normalizeVehicleStatus(value);
+                } else if (field === 'licensePlate') {
+                    // Uppercase license plates
+                    value = value.toUpperCase();
+                }
+
+                if (value !== null && value !== '') {
+                    vehicle[field] = value;
+                }
+            }
+        });
+
+        // Only add if we have at least license plate or make+model
+        if (vehicle.licensePlate || (vehicle.make && vehicle.model)) {
+            vehicles.push(vehicle);
+        }
+    }
+
+    return vehicles;
+}
+
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (inQuotes) {
+            if (char === '"') {
+                if (line[i + 1] === '"') {
+                    current += '"';
+                    i++;
+                } else {
+                    inQuotes = false;
+                }
+            } else {
+                current += char;
+            }
+        } else {
+            if (char === '"') {
+                inQuotes = true;
+            } else if (char === ',' || char === ';') {
+                result.push(current);
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+    }
+    result.push(current);
+
+    return result;
+}
+
+function normalizeFuelType(value) {
+    const lower = value.toLowerCase();
+    if (lower.includes('benzin') || lower.includes('petrol') || lower.includes('gasoline')) return 'petrol';
+    if (lower.includes('diesel')) return 'diesel';
+    if (lower.includes('elektro') || lower.includes('electric') || lower.includes('ev')) return 'electric';
+    if (lower.includes('hybrid')) return 'hybrid';
+    if (lower.includes('lpg') || lower.includes('autogas') || lower.includes('gas')) return 'lpg';
+    return value;
+}
+
+function normalizeVehicleType(value) {
+    const lower = value.toLowerCase();
+    if (lower.includes('pkw') || lower.includes('car') || lower.includes('sedan') || lower.includes('limousine')) return 'car';
+    if (lower.includes('lkw') || lower.includes('truck') || lower.includes('lastwagen')) return 'truck';
+    if (lower.includes('transporter') || lower.includes('van') || lower.includes('lieferwagen')) return 'van';
+    if (lower.includes('motorrad') || lower.includes('motorcycle') || lower.includes('bike')) return 'motorcycle';
+    return 'car'; // Default to car
+}
+
+function normalizeVehicleStatus(value) {
+    const lower = value.toLowerCase();
+    if (lower.includes('aktiv') || lower.includes('active') || lower.includes('in use')) return 'active';
+    if (lower.includes('wartung') || lower.includes('maintenance') || lower.includes('service')) return 'maintenance';
+    if (lower.includes('inaktiv') || lower.includes('inactive') || lower.includes('stillgelegt')) return 'inactive';
+    return 'active'; // Default to active
+}
+
 function clearAllData() {
     showConfirmDialog(t('confirm.clearAll'), t('confirm.clearAllMsg'), async () => {
         try {
@@ -2117,11 +2411,9 @@ async function init() {
         document.documentElement.setAttribute('data-theme', state.settings.theme);
     }
 
-    // Apply saved language from Supabase (overrides localStorage if different)
+    // Apply language (localStorage is authoritative, already restored in loadAllData)
     if (state.settings.language) {
         document.documentElement.setAttribute('lang', state.settings.language);
-        // Sync localStorage with Supabase value
-        localStorage.setItem('fuhrparkpro_language', state.settings.language);
     }
 
     // Apply translations to static elements (with final language from Supabase)
