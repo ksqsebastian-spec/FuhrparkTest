@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FuhrparkPro - Fleet Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 8-bit style sports car -->
+                    <rect x="4" y="16" width="24" height="8" fill="currentColor"/>
+                    <rect x="8" y="12" width="16" height="4" fill="currentColor"/>
+                    <rect x="10" y="8" width="12" height="4" fill="currentColor"/>
+                    <rect x="6" y="24" width="6" height="4" fill="currentColor"/>
+                    <rect x="20" y="24" width="6" height="4" fill="currentColor"/>
+                    <rect x="2" y="18" width="4" height="4" fill="currentColor"/>
+                    <rect x="26" y="16" width="4" height="6" fill="currentColor"/>
+                    <rect x="12" y="10" width="3" height="2" fill="#ffffff" opacity="0.6"/>
+                    <rect x="17" y="10" width="3" height="2" fill="#ffffff" opacity="0.6"/>
+                </svg>
+                <span>FuhrparkPro</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="vehicles">
+                    <i class="fas fa-car"></i>
+                    <span>Vehicles</span>
+                </a>
+                <a href="#" class="nav-item" data-page="documents">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Documents</span>
+                </a>
+                <a href="#" class="nav-item" data-page="maintenance">
+                    <i class="fas fa-wrench"></i>
+                    <span>Maintenance</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Local Storage Mode</p>
+                <small>Data saved locally</small>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search vehicles..." id="globalSearch">
+                    </div>
+                    <button class="btn btn-primary" id="addVehicleBtn">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Vehicle</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <section class="page active" id="dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalVehicles">0</h3>
+                            <p>Total Vehicles</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="activeVehicles">0</h3>
+                            <p>Active</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="maintenanceVehicles">0</h3>
+                            <p>In Maintenance</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="alertsCount">0</h3>
+                            <p>Alerts</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Recent Vehicles</h2>
+                            <a href="#" class="view-all" data-page="vehicles">View All</a>
+                        </div>
+                        <div class="card-body">
+                            <div id="recentVehiclesList" class="vehicle-list-mini">
+                                <p class="empty-state">No vehicles added yet</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Upcoming Maintenance</h2>
+                            <a href="#" class="view-all" data-page="maintenance">View All</a>
+                        </div>
+                        <div class="card-body">
+                            <div id="upcomingMaintenance" class="maintenance-list-mini">
+                                <p class="empty-state">No maintenance scheduled</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card full-width">
+                        <div class="card-header">
+                            <h2>Fleet by Status</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="status-chart" id="statusChart">
+                                <div class="chart-placeholder">
+                                    <i class="fas fa-chart-pie"></i>
+                                    <p>Add vehicles to see statistics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vehicles Page -->
+            <section class="page" id="vehicles">
+                <div class="page-actions">
+                    <div class="filters">
+                        <select id="statusFilter" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="maintenance">In Maintenance</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <select id="typeFilter" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="car">Car</option>
+                            <option value="truck">Truck</option>
+                            <option value="van">Van</option>
+                            <option value="motorcycle">Motorcycle</option>
+                        </select>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="grid">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-btn" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="vehiclesContainer" class="vehicles-grid">
+                    <div class="empty-state-large">
+                        <i class="fas fa-car"></i>
+                        <h3>No vehicles yet</h3>
+                        <p>Add your first vehicle to get started</p>
+                        <button class="btn btn-primary" onclick="openVehicleModal()">
+                            <i class="fas fa-plus"></i> Add Vehicle
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Documents Page -->
+            <section class="page" id="documents">
+                <div class="page-actions">
+                    <div class="filters">
+                        <select id="docVehicleFilter" class="filter-select">
+                            <option value="">All Vehicles</option>
+                        </select>
+                        <select id="docTypeFilter" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="registration">Registration</option>
+                            <option value="insurance">Insurance</option>
+                            <option value="inspection">Inspection</option>
+                            <option value="receipt">Receipt</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="openDocumentModal()">
+                        <i class="fas fa-upload"></i> Upload Document
+                    </button>
+                </div>
+
+                <div id="documentsContainer" class="documents-grid">
+                    <div class="empty-state-large">
+                        <i class="fas fa-folder-open"></i>
+                        <h3>No documents yet</h3>
+                        <p>Upload documents for your vehicles</p>
+                        <button class="btn btn-primary" onclick="openDocumentModal()">
+                            <i class="fas fa-upload"></i> Upload Document
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Maintenance Page -->
+            <section class="page" id="maintenance">
+                <div class="page-actions">
+                    <div class="filters">
+                        <select id="maintVehicleFilter" class="filter-select">
+                            <option value="">All Vehicles</option>
+                        </select>
+                        <select id="maintStatusFilter" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="openMaintenanceModal()">
+                        <i class="fas fa-plus"></i> Schedule Maintenance
+                    </button>
+                </div>
+
+                <div id="maintenanceContainer" class="maintenance-list">
+                    <div class="empty-state-large">
+                        <i class="fas fa-wrench"></i>
+                        <h3>No maintenance records</h3>
+                        <p>Schedule maintenance for your vehicles</p>
+                        <button class="btn btn-primary" onclick="openMaintenanceModal()">
+                            <i class="fas fa-plus"></i> Schedule Maintenance
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Page -->
+            <section class="page" id="settings">
+                <div class="settings-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Data Management</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Export Data</h4>
+                                    <p>Download all your fleet data as JSON</p>
+                                </div>
+                                <button class="btn btn-secondary" onclick="exportData()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Import Data</h4>
+                                    <p>Restore data from a backup file</p>
+                                </div>
+                                <label class="btn btn-secondary">
+                                    <i class="fas fa-upload"></i> Import
+                                    <input type="file" id="importFile" accept=".json" hidden onchange="importData(event)">
+                                </label>
+                            </div>
+                            <div class="setting-item danger">
+                                <div class="setting-info">
+                                    <h4>Clear All Data</h4>
+                                    <p>Permanently delete all fleet data</p>
+                                </div>
+                                <button class="btn btn-danger" onclick="clearAllData()">
+                                    <i class="fas fa-trash"></i> Clear Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Display Settings</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Theme</h4>
+                                    <p>Choose your preferred color scheme</p>
+                                </div>
+                                <select id="themeSelect" class="filter-select" onchange="setTheme(this.value)">
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Currency</h4>
+                                    <p>Set your preferred currency</p>
+                                </div>
+                                <select id="currencySelect" class="filter-select" onchange="setCurrency(this.value)">
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="CHF">CHF (Fr.)</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Distance Unit</h4>
+                                    <p>Set your preferred distance unit</p>
+                                </div>
+                                <select id="distanceSelect" class="filter-select" onchange="setDistanceUnit(this.value)">
+                                    <option value="km">Kilometers (km)</option>
+                                    <option value="mi">Miles (mi)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>About</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="about-info">
+                                <h4>FuhrparkPro</h4>
+                                <p>Version 1.0.0</p>
+                                <p>A modern fleet management solution</p>
+                                <p class="storage-info">
+                                    <i class="fas fa-database"></i>
+                                    Storage used: <span id="storageUsed">0 KB</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Vehicle Modal -->
+    <div class="modal" id="vehicleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="vehicleModalTitle">Add New Vehicle</h2>
+                <button class="close-btn" onclick="closeVehicleModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="vehicleForm" onsubmit="saveVehicle(event)">
+                <input type="hidden" id="vehicleId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="licensePlate">License Plate *</label>
+                        <input type="text" id="licensePlate" required placeholder="e.g., B-AB 1234">
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicleType">Vehicle Type *</label>
+                        <select id="vehicleType" required>
+                            <option value="">Select type</option>
+                            <option value="car">Car</option>
+                            <option value="truck">Truck</option>
+                            <option value="van">Van</option>
+                            <option value="motorcycle">Motorcycle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="make">Make *</label>
+                        <input type="text" id="make" required placeholder="e.g., Volkswagen">
+                    </div>
+                    <div class="form-group">
+                        <label for="model">Model *</label>
+                        <input type="text" id="model" required placeholder="e.g., Golf">
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Year *</label>
+                        <input type="number" id="year" required min="1900" max="2030" placeholder="e.g., 2023">
+                    </div>
+                    <div class="form-group">
+                        <label for="color">Color</label>
+                        <input type="text" id="color" placeholder="e.g., Silver">
+                    </div>
+                    <div class="form-group">
+                        <label for="vin">VIN</label>
+                        <input type="text" id="vin" placeholder="Vehicle Identification Number">
+                    </div>
+                    <div class="form-group">
+                        <label for="mileage">Current Mileage</label>
+                        <input type="number" id="mileage" min="0" placeholder="e.g., 50000">
+                    </div>
+                    <div class="form-group">
+                        <label for="fuelType">Fuel Type</label>
+                        <select id="fuelType">
+                            <option value="">Select fuel type</option>
+                            <option value="petrol">Petrol</option>
+                            <option value="diesel">Diesel</option>
+                            <option value="electric">Electric</option>
+                            <option value="hybrid">Hybrid</option>
+                            <option value="lpg">LPG</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicleStatus">Status</label>
+                        <select id="vehicleStatus">
+                            <option value="active">Active</option>
+                            <option value="maintenance">In Maintenance</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="purchaseDate">Purchase Date</label>
+                        <input type="date" id="purchaseDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="purchasePrice">Purchase Price</label>
+                        <input type="number" id="purchasePrice" min="0" step="0.01" placeholder="e.g., 25000">
+                    </div>
+                    <div class="form-group">
+                        <label for="insuranceExpiry">Insurance Expiry</label>
+                        <input type="date" id="insuranceExpiry">
+                    </div>
+                    <div class="form-group">
+                        <label for="inspectionExpiry">Inspection Expiry (TÜV)</label>
+                        <input type="date" id="inspectionExpiry">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" rows="3" placeholder="Additional notes about the vehicle"></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="vehicleImage">Vehicle Image</label>
+                        <div class="image-upload">
+                            <input type="file" id="vehicleImage" accept="image/*" onchange="previewImage(event)">
+                            <div class="image-preview" id="imagePreview">
+                                <i class="fas fa-camera"></i>
+                                <span>Click to upload image</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeVehicleModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Vehicle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Document Modal -->
+    <div class="modal" id="documentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Document</h2>
+                <button class="close-btn" onclick="closeDocumentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="documentForm" onsubmit="saveDocument(event)">
+                <input type="hidden" id="documentId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="docVehicle">Vehicle *</label>
+                        <select id="docVehicle" required>
+                            <option value="">Select vehicle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="docType">Document Type *</label>
+                        <select id="docType" required>
+                            <option value="">Select type</option>
+                            <option value="registration">Registration</option>
+                            <option value="insurance">Insurance</option>
+                            <option value="inspection">Inspection Certificate</option>
+                            <option value="receipt">Receipt/Invoice</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="docName">Document Name *</label>
+                        <input type="text" id="docName" required placeholder="e.g., Insurance Policy 2024">
+                    </div>
+                    <div class="form-group">
+                        <label for="docDate">Document Date</label>
+                        <input type="date" id="docDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="docExpiry">Expiry Date</label>
+                        <input type="date" id="docExpiry">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="docFile">File *</label>
+                        <div class="file-upload">
+                            <input type="file" id="docFile" required onchange="previewDocument(event)">
+                            <div class="file-preview" id="filePreview">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Click to select file</span>
+                                <small>PDF, Images, or Documents</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="docNotes">Notes</label>
+                        <textarea id="docNotes" rows="2" placeholder="Additional notes"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeDocumentModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Maintenance Modal -->
+    <div class="modal" id="maintenanceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="maintenanceModalTitle">Schedule Maintenance</h2>
+                <button class="close-btn" onclick="closeMaintenanceModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="maintenanceForm" onsubmit="saveMaintenance(event)">
+                <input type="hidden" id="maintenanceId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="maintVehicle">Vehicle *</label>
+                        <select id="maintVehicle" required>
+                            <option value="">Select vehicle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintType">Maintenance Type *</label>
+                        <select id="maintType" required>
+                            <option value="">Select type</option>
+                            <option value="oil-change">Oil Change</option>
+                            <option value="tire-rotation">Tire Rotation</option>
+                            <option value="brake-service">Brake Service</option>
+                            <option value="inspection">General Inspection</option>
+                            <option value="tuv">TÜV/Safety Inspection</option>
+                            <option value="repair">Repair</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="maintDescription">Description *</label>
+                        <input type="text" id="maintDescription" required placeholder="e.g., Regular oil change">
+                    </div>
+                    <div class="form-group">
+                        <label for="maintDate">Scheduled Date *</label>
+                        <input type="date" id="maintDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintStatus">Status</label>
+                        <select id="maintStatus">
+                            <option value="scheduled">Scheduled</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintMileage">Mileage at Service</label>
+                        <input type="number" id="maintMileage" min="0" placeholder="Current mileage">
+                    </div>
+                    <div class="form-group">
+                        <label for="maintCost">Cost</label>
+                        <input type="number" id="maintCost" min="0" step="0.01" placeholder="e.g., 150.00">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="maintProvider">Service Provider</label>
+                        <input type="text" id="maintProvider" placeholder="e.g., AutoService GmbH">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="maintNotes">Notes</label>
+                        <textarea id="maintNotes" rows="2" placeholder="Additional notes"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeMaintenanceModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vehicle Detail Modal -->
+    <div class="modal" id="vehicleDetailModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="vehicleDetailTitle">Vehicle Details</h2>
+                <button class="close-btn" onclick="closeVehicleDetailModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="vehicle-detail-content" id="vehicleDetailContent">
+                <!-- Content populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confirm Dialog -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2 id="confirmTitle">Confirm Action</h2>
+                <button class="close-btn" onclick="closeConfirmModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="confirm-body">
+                <p id="confirmMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
