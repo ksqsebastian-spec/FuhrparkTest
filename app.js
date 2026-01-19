@@ -1939,8 +1939,8 @@ function updateVehicleSelects() {
             const isFilter = select.id.includes('Filter');
 
             select.innerHTML = isFilter
-                ? '<option value="">All Vehicles</option>'
-                : '<option value="">Select vehicle</option>';
+                ? `<option value="">${t('documents.allVehicles')}</option>`
+                : `<option value="">${t('documentModal.selectVehicle')}</option>`;
 
             state.vehicles.forEach(v => {
                 const option = document.createElement('option');
