@@ -305,6 +305,29 @@
 
                     <div class="card">
                         <div class="card-header">
+                            <h2 data-i18n="settings.avrios">Avrios Import</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4 data-i18n="settings.avriosImport">Import from Avrios</h4>
+                                    <p data-i18n="settings.avriosImportDesc">Import vehicles from an Avrios CSV export file</p>
+                                </div>
+                                <label class="btn btn-primary">
+                                    <i class="fas fa-file-csv"></i> <span data-i18n="settings.avriosSelectFile">Select CSV</span>
+                                    <input type="file" id="avriosImportFile" accept=".csv" hidden onchange="importFromAvrios(event)">
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <p class="text-muted" data-i18n="settings.avriosHint">Export your vehicles from Avrios as CSV, then upload here. Supported fields: License Plate, Make, Model, Year, VIN, Mileage, Fuel Type.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
                             <h2 data-i18n="settings.displaySettings">Display Settings</h2>
                         </div>
                         <div class="card-body">
