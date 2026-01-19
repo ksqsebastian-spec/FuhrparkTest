@@ -599,6 +599,46 @@ function getMaintenanceTypeLabel(type) {
     return t(`maintType.${type}`) || type;
 }
 
+function getMaintenanceStatusLabel(status) {
+    const statusMap = {
+        'scheduled': 'maintenance.scheduled',
+        'in-progress': 'maintenance.inProgress',
+        'completed': 'maintenance.completed',
+        'overdue': 'maintenance.overdue'
+    };
+    return t(statusMap[status]) || status;
+}
+
+function getVehicleStatusLabel(status) {
+    const statusMap = {
+        'active': 'vehicles.active',
+        'maintenance': 'vehicles.inMaintenance',
+        'inactive': 'vehicles.inactive'
+    };
+    return t(statusMap[status]) || status;
+}
+
+function getVehicleTypeLabel(type) {
+    const typeMap = {
+        'car': 'vehicles.car',
+        'truck': 'vehicles.truck',
+        'van': 'vehicles.van',
+        'motorcycle': 'vehicles.motorcycle'
+    };
+    return t(typeMap[type]) || type;
+}
+
+function getFuelTypeLabel(fuelType) {
+    const fuelMap = {
+        'petrol': 'vehicleModal.petrol',
+        'diesel': 'vehicleModal.diesel',
+        'electric': 'vehicleModal.electric',
+        'hybrid': 'vehicleModal.hybrid',
+        'lpg': 'vehicleModal.lpg'
+    };
+    return t(fuelMap[fuelType]) || fuelType;
+}
+
 function isDateExpiringSoon(dateString, daysThreshold = 30) {
     if (!dateString) return false;
     const date = new Date(dateString);
@@ -913,7 +953,7 @@ function updateDashboard() {
                     <h4>${v.make} ${v.model}</h4>
                     <p>${v.licensePlate}</p>
                 </div>
-                <span class="vehicle-status status-${v.status}">${v.status}</span>
+                <span class="vehicle-status status-${v.status}">${getVehicleStatusLabel(v.status)}</span>
             </div>
         `).join('');
     }
@@ -941,7 +981,7 @@ function updateDashboard() {
                         <h4>${m.description}</h4>
                         <p>${vehicle ? `${vehicle.make} ${vehicle.model}` : t('vehicles.unknownVehicle')}</p>
                     </div>
-                    <span class="maintenance-badge ${m.status}">${m.status}</span>
+                    <span class="maintenance-badge ${m.status}">${getMaintenanceStatusLabel(m.status)}</span>
                 </div>
             `;
         }).join('');
@@ -1029,7 +1069,7 @@ function renderVehicles() {
             <div class="vehicle-card" onclick="showVehicleDetail('${v.id}')">
                 <div class="vehicle-image">
                     ${v.image ? `<img src="${v.image}" alt="${v.make} ${v.model}">` : `<i class="fas ${getVehicleIcon(v.type)}"></i>`}
-                    <span class="vehicle-status status-${v.status}">${v.status}</span>
+                    <span class="vehicle-status status-${v.status}">${getVehicleStatusLabel(v.status)}</span>
                 </div>
                 <div class="vehicle-info">
                     <h3>${v.make} ${v.model}</h3>
@@ -1062,7 +1102,7 @@ function renderVehicles() {
                     <h4>${v.make} ${v.model} (${v.year || '-'})</h4>
                     <p>${v.licensePlate} • ${formatMileage(v.mileage)} • ${v.fuelType || 'N/A'}</p>
                 </div>
-                <span class="vehicle-status status-${v.status}">${v.status}</span>
+                <span class="vehicle-status status-${v.status}">${getVehicleStatusLabel(v.status)}</span>
                 <div class="vehicle-actions" onclick="event.stopPropagation()">
                     <button class="edit" onclick="editVehicle('${v.id}')" title="Edit">
                         <i class="fas fa-edit"></i>
@@ -1265,7 +1305,7 @@ function showVehicleDetail(id) {
             <div class="vehicle-detail-main">
                 <h2>${vehicle.make} ${vehicle.model}</h2>
                 <div class="plate">${vehicle.licensePlate}</div>
-                <span class="vehicle-status status-${vehicle.status}">${vehicle.status}</span>
+                <span class="vehicle-status status-${vehicle.status}">${getVehicleStatusLabel(vehicle.status)}</span>
                 <div class="detail-grid">
                     <div class="detail-item">
                         <span class="label">${t('vehicleDetail.year')}</span>
@@ -1273,7 +1313,7 @@ function showVehicleDetail(id) {
                     </div>
                     <div class="detail-item">
                         <span class="label">${t('vehicleDetail.type')}</span>
-                        <span class="value">${vehicle.type || '-'}</span>
+                        <span class="value">${vehicle.type ? getVehicleTypeLabel(vehicle.type) : '-'}</span>
                     </div>
                     <div class="detail-item">
                         <span class="label">${t('vehicleDetail.mileage')}</span>
@@ -1281,7 +1321,7 @@ function showVehicleDetail(id) {
                     </div>
                     <div class="detail-item">
                         <span class="label">${t('vehicleDetail.fuelType')}</span>
-                        <span class="value">${vehicle.fuelType || '-'}</span>
+                        <span class="value">${vehicle.fuelType ? getFuelTypeLabel(vehicle.fuelType) : '-'}</span>
                     </div>
                     <div class="detail-item">
                         <span class="label">${t('vehicleDetail.color')}</span>
@@ -1373,7 +1413,7 @@ function showVehicleDetail(id) {
                                     <h4>${m.description}</h4>
                                     <p>${getMaintenanceTypeLabel(m.type)} ${m.cost ? `• ${formatCurrency(m.cost)}` : ''}</p>
                                 </div>
-                                <span class="maintenance-badge ${m.status}">${m.status}</span>
+                                <span class="maintenance-badge ${m.status}">${getMaintenanceStatusLabel(m.status)}</span>
                             </div>
                         `;
                     }).join('')}
@@ -1648,7 +1688,7 @@ function renderMaintenance() {
                         ${m.provider ? ` • ${m.provider}` : ''}
                     </p>
                 </div>
-                <span class="maintenance-badge ${m.displayStatus}">${m.displayStatus}</span>
+                <span class="maintenance-badge ${m.displayStatus}">${getMaintenanceStatusLabel(m.displayStatus)}</span>
                 <div class="maintenance-actions">
                     <button onclick="editMaintenance('${m.id}')" title="Edit">
                         <i class="fas fa-edit"></i>
@@ -1811,6 +1851,7 @@ async function setLanguage(lang) {
     renderDocuments();
     renderMaintenance();
     updateSettingsPage();
+    updateVehicleSelects();
 }
 
 async function saveSettingsToSupabase() {
