@@ -2,6 +2,17 @@
 // Supabase Backend
 
 // ============================================
+// Common Car Makes for Autocomplete
+// ============================================
+const commonCarMakes = [
+    'Audi', 'BMW', 'Chevrolet', 'Citroën', 'Dacia', 'Fiat', 'Ford', 'Honda',
+    'Hyundai', 'Jaguar', 'Jeep', 'Kia', 'Land Rover', 'Lexus', 'Mazda',
+    'Mercedes-Benz', 'Mini', 'Mitsubishi', 'Nissan', 'Opel', 'Peugeot',
+    'Porsche', 'Renault', 'Seat', 'Skoda', 'Smart', 'Subaru', 'Suzuki',
+    'Tesla', 'Toyota', 'Volkswagen', 'Volvo'
+];
+
+// ============================================
 // Translations
 // ============================================
 const translations = {
@@ -1369,6 +1380,11 @@ function showVehicleDetail(id) {
         </div>
 
         <div class="tab-content" id="tab-docs">
+            <div class="tab-header-actions">
+                <button class="btn btn-primary btn-sm" onclick="openDocumentModalForVehicle('${vehicle.id}')">
+                    <i class="fas fa-upload"></i> ${t('documents.upload')}
+                </button>
+            </div>
             ${vehicleDocs.length === 0 ? `
                 <p class="empty-state">${t('documents.noDocsForVehicle')}</p>
             ` : `
@@ -1388,6 +1404,9 @@ function showVehicleDetail(id) {
                                     <button onclick="viewDocument('${d.id}')" title="View">
                                         <i class="fas fa-eye"></i>
                                     </button>
+                                    <button onclick="deleteDocument('${d.id}')" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         `;
@@ -1397,6 +1416,11 @@ function showVehicleDetail(id) {
         </div>
 
         <div class="tab-content" id="tab-maint">
+            <div class="tab-header-actions">
+                <button class="btn btn-primary btn-sm" onclick="openMaintenanceModalForVehicle('${vehicle.id}')">
+                    <i class="fas fa-plus"></i> ${t('maintenance.schedule')}
+                </button>
+            </div>
             ${vehicleMaint.length === 0 ? `
                 <p class="empty-state">${t('maintenance.noRecordsForVehicle')}</p>
             ` : `
@@ -1518,6 +1542,16 @@ function openDocumentModal() {
 
     updateVehicleSelects();
     modal.classList.add('active');
+}
+
+function openDocumentModalForVehicle(vehicleId) {
+    openDocumentModal();
+    // Pre-select the vehicle
+    setTimeout(() => {
+        document.getElementById('docVehicle').value = vehicleId;
+    }, 50);
+    // Close the vehicle detail modal
+    closeVehicleDetailModal();
 }
 
 function closeDocumentModal() {
@@ -1736,6 +1770,16 @@ function closeMaintenanceModal() {
     document.getElementById('maintenanceModal').classList.remove('active');
 }
 
+function openMaintenanceModalForVehicle(vehicleId) {
+    openMaintenanceModal();
+    // Pre-select the vehicle
+    setTimeout(() => {
+        document.getElementById('maintVehicle').value = vehicleId;
+    }, 50);
+    // Close the vehicle detail modal
+    closeVehicleDetailModal();
+}
+
 async function saveMaintenance(event) {
     event.preventDefault();
 
@@ -1843,6 +1887,8 @@ async function setDistanceUnit(unit) {
 async function setLanguage(lang) {
     state.settings.language = lang;
     document.documentElement.setAttribute('lang', lang);
+    // Save to localStorage for immediate persistence on refresh
+    localStorage.setItem('fuhrparkpro_language', lang);
     await saveSettingsToSupabase();
     applyTranslations();
     // Re-render all dynamic content with new language
@@ -2044,6 +2090,13 @@ function initEventListeners() {
 // Initialization
 // ============================================
 async function init() {
+    // Load language from localStorage immediately for instant UI update on refresh
+    const savedLanguage = localStorage.getItem('fuhrparkpro_language');
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'de')) {
+        state.settings.language = savedLanguage;
+        document.documentElement.setAttribute('lang', savedLanguage);
+    }
+
     // Apply default theme
     document.documentElement.setAttribute('data-theme', state.settings.theme);
 
@@ -2053,21 +2106,29 @@ async function init() {
     // Initialize event listeners
     initEventListeners();
 
+    // Apply translations immediately with localStorage language (before Supabase loads)
+    applyTranslations();
+
     // Load data from Supabase
     await loadAllData();
 
-    // Apply saved theme
+    // Apply saved theme from Supabase
     if (state.settings.theme) {
         document.documentElement.setAttribute('data-theme', state.settings.theme);
     }
 
-    // Apply saved language
+    // Apply saved language from Supabase (overrides localStorage if different)
     if (state.settings.language) {
         document.documentElement.setAttribute('lang', state.settings.language);
+        // Sync localStorage with Supabase value
+        localStorage.setItem('fuhrparkpro_language', state.settings.language);
     }
 
-    // Apply translations to static elements
+    // Apply translations to static elements (with final language from Supabase)
     applyTranslations();
+
+    // Create car makes datalist
+    createCarMakesDatalist();
 
     // Update all views
     updateDashboard();
@@ -2076,6 +2137,31 @@ async function init() {
     renderMaintenance();
     updateSettingsPage();
     updateVehicleSelects();
+}
+
+// Create datalist for car makes autocomplete
+function createCarMakesDatalist() {
+    // Remove existing datalist if present
+    const existing = document.getElementById('carMakesList');
+    if (existing) existing.remove();
+
+    // Create new datalist
+    const datalist = document.createElement('datalist');
+    datalist.id = 'carMakesList';
+
+    commonCarMakes.forEach(make => {
+        const option = document.createElement('option');
+        option.value = make;
+        datalist.appendChild(option);
+    });
+
+    document.body.appendChild(datalist);
+
+    // Link the make input to the datalist
+    const makeInput = document.getElementById('make');
+    if (makeInput) {
+        makeInput.setAttribute('list', 'carMakesList');
+    }
 }
 
 // Start the application
