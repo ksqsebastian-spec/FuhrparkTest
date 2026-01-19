@@ -30,28 +30,28 @@
             <nav class="nav-menu">
                 <a href="#" class="nav-item active" data-page="dashboard">
                     <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
+                    <span data-i18n="nav.dashboard">Dashboard</span>
                 </a>
                 <a href="#" class="nav-item" data-page="vehicles">
                     <i class="fas fa-car"></i>
-                    <span>Vehicles</span>
+                    <span data-i18n="nav.vehicles">Vehicles</span>
                 </a>
                 <a href="#" class="nav-item" data-page="documents">
                     <i class="fas fa-folder-open"></i>
-                    <span>Documents</span>
+                    <span data-i18n="nav.documents">Documents</span>
                 </a>
                 <a href="#" class="nav-item" data-page="maintenance">
                     <i class="fas fa-wrench"></i>
-                    <span>Maintenance</span>
+                    <span data-i18n="nav.maintenance">Maintenance</span>
                 </a>
                 <a href="#" class="nav-item" data-page="settings">
                     <i class="fas fa-cog"></i>
-                    <span>Settings</span>
+                    <span data-i18n="nav.settings">Settings</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <p>Local Storage Mode</p>
-                <small>Data saved locally</small>
+                <p data-i18n="sidebar.localMode">Local Storage Mode</p>
+                <small data-i18n="sidebar.dataSaved">Data saved locally</small>
             </div>
         </aside>
 
@@ -68,11 +68,11 @@
                 <div class="header-right">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search vehicles..." id="globalSearch">
+                        <input type="text" data-i18n-placeholder="header.search" placeholder="Search vehicles..." id="globalSearch">
                     </div>
                     <button class="btn btn-primary" id="addVehicleBtn">
                         <i class="fas fa-plus"></i>
-                        <span>Add Vehicle</span>
+                        <span data-i18n="header.addVehicle">Add Vehicle</span>
                     </button>
                 </div>
             </header>
@@ -86,7 +86,7 @@
                         </div>
                         <div class="stat-info">
                             <h3 id="totalVehicles">0</h3>
-                            <p>Total Vehicles</p>
+                            <p data-i18n="dashboard.totalVehicles">Total Vehicles</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -95,7 +95,7 @@
                         </div>
                         <div class="stat-info">
                             <h3 id="activeVehicles">0</h3>
-                            <p>Active</p>
+                            <p data-i18n="dashboard.active">Active</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -104,7 +104,7 @@
                         </div>
                         <div class="stat-info">
                             <h3 id="maintenanceVehicles">0</h3>
-                            <p>In Maintenance</p>
+                            <p data-i18n="dashboard.inMaintenance">In Maintenance</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -113,7 +113,7 @@
                         </div>
                         <div class="stat-info">
                             <h3 id="alertsCount">0</h3>
-                            <p>Alerts</p>
+                            <p data-i18n="dashboard.alerts">Alerts</p>
                         </div>
                     </div>
                 </div>
@@ -121,37 +121,37 @@
                 <div class="dashboard-grid">
                     <div class="card">
                         <div class="card-header">
-                            <h2>Recent Vehicles</h2>
-                            <a href="#" class="view-all" data-page="vehicles">View All</a>
+                            <h2 data-i18n="dashboard.recentVehicles">Recent Vehicles</h2>
+                            <a href="#" class="view-all" data-page="vehicles" data-i18n="dashboard.viewAll">View All</a>
                         </div>
                         <div class="card-body">
                             <div id="recentVehiclesList" class="vehicle-list-mini">
-                                <p class="empty-state">No vehicles added yet</p>
+                                <p class="empty-state" data-i18n="dashboard.noVehicles">No vehicles added yet</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
                         <div class="card-header">
-                            <h2>Upcoming Maintenance</h2>
-                            <a href="#" class="view-all" data-page="maintenance">View All</a>
+                            <h2 data-i18n="dashboard.upcomingMaintenance">Upcoming Maintenance</h2>
+                            <a href="#" class="view-all" data-page="maintenance" data-i18n="dashboard.viewAll">View All</a>
                         </div>
                         <div class="card-body">
                             <div id="upcomingMaintenance" class="maintenance-list-mini">
-                                <p class="empty-state">No maintenance scheduled</p>
+                                <p class="empty-state" data-i18n="dashboard.noMaintenance">No maintenance scheduled</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="card full-width">
                         <div class="card-header">
-                            <h2>Fleet by Status</h2>
+                            <h2 data-i18n="dashboard.fleetByStatus">Fleet by Status</h2>
                         </div>
                         <div class="card-body">
                             <div class="status-chart" id="statusChart">
                                 <div class="chart-placeholder">
                                     <i class="fas fa-chart-pie"></i>
-                                    <p>Add vehicles to see statistics</p>
+                                    <p data-i18n="dashboard.addVehiclesStats">Add vehicles to see statistics</p>
                                 </div>
                             </div>
                         </div>
@@ -164,17 +164,17 @@
                 <div class="page-actions">
                     <div class="filters">
                         <select id="statusFilter" class="filter-select">
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="maintenance">In Maintenance</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="" data-i18n="vehicles.allStatus">All Status</option>
+                            <option value="active" data-i18n="vehicles.active">Active</option>
+                            <option value="maintenance" data-i18n="vehicles.inMaintenance">In Maintenance</option>
+                            <option value="inactive" data-i18n="vehicles.inactive">Inactive</option>
                         </select>
                         <select id="typeFilter" class="filter-select">
-                            <option value="">All Types</option>
-                            <option value="car">Car</option>
-                            <option value="truck">Truck</option>
-                            <option value="van">Van</option>
-                            <option value="motorcycle">Motorcycle</option>
+                            <option value="" data-i18n="vehicles.allTypes">All Types</option>
+                            <option value="car" data-i18n="vehicles.car">Car</option>
+                            <option value="truck" data-i18n="vehicles.truck">Truck</option>
+                            <option value="van" data-i18n="vehicles.van">Van</option>
+                            <option value="motorcycle" data-i18n="vehicles.motorcycle">Motorcycle</option>
                         </select>
                     </div>
                     <div class="view-toggle">
@@ -190,10 +190,10 @@
                 <div id="vehiclesContainer" class="vehicles-grid">
                     <div class="empty-state-large">
                         <i class="fas fa-car"></i>
-                        <h3>No vehicles yet</h3>
-                        <p>Add your first vehicle to get started</p>
+                        <h3 data-i18n="vehicles.noVehicles">No vehicles yet</h3>
+                        <p data-i18n="vehicles.addFirst">Add your first vehicle to get started</p>
                         <button class="btn btn-primary" onclick="openVehicleModal()">
-                            <i class="fas fa-plus"></i> Add Vehicle
+                            <i class="fas fa-plus"></i> <span data-i18n="vehicles.addVehicle">Add Vehicle</span>
                         </button>
                     </div>
                 </div>
@@ -204,29 +204,29 @@
                 <div class="page-actions">
                     <div class="filters">
                         <select id="docVehicleFilter" class="filter-select">
-                            <option value="">All Vehicles</option>
+                            <option value="" data-i18n="documents.allVehicles">All Vehicles</option>
                         </select>
                         <select id="docTypeFilter" class="filter-select">
-                            <option value="">All Types</option>
-                            <option value="registration">Registration</option>
-                            <option value="insurance">Insurance</option>
-                            <option value="inspection">Inspection</option>
-                            <option value="receipt">Receipt</option>
-                            <option value="other">Other</option>
+                            <option value="" data-i18n="documents.allTypes">All Types</option>
+                            <option value="registration" data-i18n="documents.registration">Registration</option>
+                            <option value="insurance" data-i18n="documents.insurance">Insurance</option>
+                            <option value="inspection" data-i18n="documents.inspection">Inspection</option>
+                            <option value="receipt" data-i18n="documents.receipt">Receipt</option>
+                            <option value="other" data-i18n="documents.other">Other</option>
                         </select>
                     </div>
                     <button class="btn btn-primary" onclick="openDocumentModal()">
-                        <i class="fas fa-upload"></i> Upload Document
+                        <i class="fas fa-upload"></i> <span data-i18n="documents.upload">Upload Document</span>
                     </button>
                 </div>
 
                 <div id="documentsContainer" class="documents-grid">
                     <div class="empty-state-large">
                         <i class="fas fa-folder-open"></i>
-                        <h3>No documents yet</h3>
-                        <p>Upload documents for your vehicles</p>
+                        <h3 data-i18n="documents.noDocuments">No documents yet</h3>
+                        <p data-i18n="documents.uploadFirst">Upload documents for your vehicles</p>
                         <button class="btn btn-primary" onclick="openDocumentModal()">
-                            <i class="fas fa-upload"></i> Upload Document
+                            <i class="fas fa-upload"></i> <span data-i18n="documents.upload">Upload Document</span>
                         </button>
                     </div>
                 </div>
@@ -237,28 +237,28 @@
                 <div class="page-actions">
                     <div class="filters">
                         <select id="maintVehicleFilter" class="filter-select">
-                            <option value="">All Vehicles</option>
+                            <option value="" data-i18n="documents.allVehicles">All Vehicles</option>
                         </select>
                         <select id="maintStatusFilter" class="filter-select">
-                            <option value="">All Status</option>
-                            <option value="scheduled">Scheduled</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="overdue">Overdue</option>
+                            <option value="" data-i18n="maintenance.allStatus">All Status</option>
+                            <option value="scheduled" data-i18n="maintenance.scheduled">Scheduled</option>
+                            <option value="in-progress" data-i18n="maintenance.inProgress">In Progress</option>
+                            <option value="completed" data-i18n="maintenance.completed">Completed</option>
+                            <option value="overdue" data-i18n="maintenance.overdue">Overdue</option>
                         </select>
                     </div>
                     <button class="btn btn-primary" onclick="openMaintenanceModal()">
-                        <i class="fas fa-plus"></i> Schedule Maintenance
+                        <i class="fas fa-plus"></i> <span data-i18n="maintenance.schedule">Schedule Maintenance</span>
                     </button>
                 </div>
 
                 <div id="maintenanceContainer" class="maintenance-list">
                     <div class="empty-state-large">
                         <i class="fas fa-wrench"></i>
-                        <h3>No maintenance records</h3>
-                        <p>Schedule maintenance for your vehicles</p>
+                        <h3 data-i18n="maintenance.noRecords">No maintenance records</h3>
+                        <p data-i18n="maintenance.scheduleFirst">Schedule maintenance for your vehicles</p>
                         <button class="btn btn-primary" onclick="openMaintenanceModal()">
-                            <i class="fas fa-plus"></i> Schedule Maintenance
+                            <i class="fas fa-plus"></i> <span data-i18n="maintenance.schedule">Schedule Maintenance</span>
                         </button>
                     </div>
                 </div>
@@ -269,35 +269,35 @@
                 <div class="settings-container">
                     <div class="card">
                         <div class="card-header">
-                            <h2>Data Management</h2>
+                            <h2 data-i18n="settings.dataManagement">Data Management</h2>
                         </div>
                         <div class="card-body">
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <h4>Export Data</h4>
-                                    <p>Download all your fleet data as JSON</p>
+                                    <h4 data-i18n="settings.exportData">Export Data</h4>
+                                    <p data-i18n="settings.exportDesc">Download all your fleet data as JSON</p>
                                 </div>
                                 <button class="btn btn-secondary" onclick="exportData()">
-                                    <i class="fas fa-download"></i> Export
+                                    <i class="fas fa-download"></i> <span data-i18n="settings.export">Export</span>
                                 </button>
                             </div>
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <h4>Import Data</h4>
-                                    <p>Restore data from a backup file</p>
+                                    <h4 data-i18n="settings.importData">Import Data</h4>
+                                    <p data-i18n="settings.importDesc">Restore data from a backup file</p>
                                 </div>
                                 <label class="btn btn-secondary">
-                                    <i class="fas fa-upload"></i> Import
+                                    <i class="fas fa-upload"></i> <span data-i18n="settings.import">Import</span>
                                     <input type="file" id="importFile" accept=".json" hidden onchange="importData(event)">
                                 </label>
                             </div>
                             <div class="setting-item danger">
                                 <div class="setting-info">
-                                    <h4>Clear All Data</h4>
-                                    <p>Permanently delete all fleet data</p>
+                                    <h4 data-i18n="settings.clearData">Clear All Data</h4>
+                                    <p data-i18n="settings.clearDesc">Permanently delete all fleet data</p>
                                 </div>
                                 <button class="btn btn-danger" onclick="clearAllData()">
-                                    <i class="fas fa-trash"></i> Clear Data
+                                    <i class="fas fa-trash"></i> <span data-i18n="settings.clear">Clear Data</span>
                                 </button>
                             </div>
                         </div>
@@ -305,23 +305,33 @@
 
                     <div class="card">
                         <div class="card-header">
-                            <h2>Display Settings</h2>
+                            <h2 data-i18n="settings.displaySettings">Display Settings</h2>
                         </div>
                         <div class="card-body">
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <h4>Theme</h4>
-                                    <p>Choose your preferred color scheme</p>
+                                    <h4 data-i18n="settings.language">Language</h4>
+                                    <p data-i18n="settings.languageDesc">Choose your preferred language</p>
                                 </div>
-                                <select id="themeSelect" class="filter-select" onchange="setTheme(this.value)">
-                                    <option value="light">Light</option>
-                                    <option value="dark">Dark</option>
+                                <select id="languageSelect" class="filter-select" onchange="setLanguage(this.value)">
+                                    <option value="en">English</option>
+                                    <option value="de">Deutsch</option>
                                 </select>
                             </div>
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <h4>Currency</h4>
-                                    <p>Set your preferred currency</p>
+                                    <h4 data-i18n="settings.theme">Theme</h4>
+                                    <p data-i18n="settings.themeDesc">Choose your preferred color scheme</p>
+                                </div>
+                                <select id="themeSelect" class="filter-select" onchange="setTheme(this.value)">
+                                    <option value="light" data-i18n="settings.light">Light</option>
+                                    <option value="dark" data-i18n="settings.dark">Dark</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4 data-i18n="settings.currency">Currency</h4>
+                                    <p data-i18n="settings.currencyDesc">Set your preferred currency</p>
                                 </div>
                                 <select id="currencySelect" class="filter-select" onchange="setCurrency(this.value)">
                                     <option value="EUR">EUR (€)</option>
@@ -332,12 +342,12 @@
                             </div>
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <h4>Distance Unit</h4>
-                                    <p>Set your preferred distance unit</p>
+                                    <h4 data-i18n="settings.distance">Distance Unit</h4>
+                                    <p data-i18n="settings.distanceDesc">Set your preferred distance unit</p>
                                 </div>
                                 <select id="distanceSelect" class="filter-select" onchange="setDistanceUnit(this.value)">
-                                    <option value="km">Kilometers (km)</option>
-                                    <option value="mi">Miles (mi)</option>
+                                    <option value="km" data-i18n="settings.kilometers">Kilometers (km)</option>
+                                    <option value="mi" data-i18n="settings.miles">Miles (mi)</option>
                                 </select>
                             </div>
                         </div>
@@ -345,16 +355,16 @@
 
                     <div class="card">
                         <div class="card-header">
-                            <h2>About</h2>
+                            <h2 data-i18n="settings.about">About</h2>
                         </div>
                         <div class="card-body">
                             <div class="about-info">
                                 <h4>FuhrparkPro</h4>
-                                <p>Version 1.0.0</p>
-                                <p>A modern fleet management solution</p>
+                                <p data-i18n="settings.version">Version 1.0.0</p>
+                                <p data-i18n="settings.description">A modern fleet management solution</p>
                                 <p class="storage-info">
                                     <i class="fas fa-database"></i>
-                                    Storage used: <span id="storageUsed">0 KB</span>
+                                    <span data-i18n="settings.storageUsed">Storage used</span>: <span id="storageUsed">0 KB</span>
                                 </p>
                             </div>
                         </div>
@@ -368,7 +378,7 @@
     <div class="modal" id="vehicleModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="vehicleModalTitle">Add New Vehicle</h2>
+                <h2 id="vehicleModalTitle" data-i18n="vehicleModal.addTitle">Add New Vehicle</h2>
                 <button class="close-btn" onclick="closeVehicleModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -377,96 +387,96 @@
                 <input type="hidden" id="vehicleId">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="licensePlate">License Plate *</label>
+                        <label for="licensePlate" data-i18n="vehicleModal.licensePlate">License Plate</label> *
                         <input type="text" id="licensePlate" required placeholder="e.g., B-AB 1234">
                     </div>
                     <div class="form-group">
-                        <label for="vehicleType">Vehicle Type *</label>
+                        <label for="vehicleType" data-i18n="vehicleModal.vehicleType">Vehicle Type</label> *
                         <select id="vehicleType" required>
-                            <option value="">Select type</option>
-                            <option value="car">Car</option>
-                            <option value="truck">Truck</option>
-                            <option value="van">Van</option>
-                            <option value="motorcycle">Motorcycle</option>
+                            <option value="" data-i18n="vehicleModal.selectType">Select type</option>
+                            <option value="car" data-i18n="vehicles.car">Car</option>
+                            <option value="truck" data-i18n="vehicles.truck">Truck</option>
+                            <option value="van" data-i18n="vehicles.van">Van</option>
+                            <option value="motorcycle" data-i18n="vehicles.motorcycle">Motorcycle</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="make">Make *</label>
+                        <label for="make" data-i18n="vehicleModal.make">Make</label> *
                         <input type="text" id="make" required placeholder="e.g., Volkswagen">
                     </div>
                     <div class="form-group">
-                        <label for="model">Model *</label>
+                        <label for="model" data-i18n="vehicleModal.model">Model</label> *
                         <input type="text" id="model" required placeholder="e.g., Golf">
                     </div>
                     <div class="form-group">
-                        <label for="year">Year *</label>
+                        <label for="year" data-i18n="vehicleModal.year">Year</label> *
                         <input type="number" id="year" required min="1900" max="2030" placeholder="e.g., 2023">
                     </div>
                     <div class="form-group">
-                        <label for="color">Color</label>
+                        <label for="color" data-i18n="vehicleModal.color">Color</label>
                         <input type="text" id="color" placeholder="e.g., Silver">
                     </div>
                     <div class="form-group">
-                        <label for="vin">VIN</label>
-                        <input type="text" id="vin" placeholder="Vehicle Identification Number">
+                        <label for="vin" data-i18n="vehicleModal.vin">VIN</label>
+                        <input type="text" id="vin" data-i18n-placeholder="vehicleModal.vinPlaceholder" placeholder="Vehicle Identification Number">
                     </div>
                     <div class="form-group">
-                        <label for="mileage">Current Mileage</label>
+                        <label for="mileage" data-i18n="vehicleModal.mileage">Current Mileage</label>
                         <input type="number" id="mileage" min="0" placeholder="e.g., 50000">
                     </div>
                     <div class="form-group">
-                        <label for="fuelType">Fuel Type</label>
+                        <label for="fuelType" data-i18n="vehicleModal.fuelType">Fuel Type</label>
                         <select id="fuelType">
-                            <option value="">Select fuel type</option>
-                            <option value="petrol">Petrol</option>
-                            <option value="diesel">Diesel</option>
-                            <option value="electric">Electric</option>
-                            <option value="hybrid">Hybrid</option>
-                            <option value="lpg">LPG</option>
+                            <option value="" data-i18n="vehicleModal.selectFuel">Select fuel type</option>
+                            <option value="petrol" data-i18n="vehicleModal.petrol">Petrol</option>
+                            <option value="diesel" data-i18n="vehicleModal.diesel">Diesel</option>
+                            <option value="electric" data-i18n="vehicleModal.electric">Electric</option>
+                            <option value="hybrid" data-i18n="vehicleModal.hybrid">Hybrid</option>
+                            <option value="lpg" data-i18n="vehicleModal.lpg">LPG</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="vehicleStatus">Status</label>
+                        <label for="vehicleStatus" data-i18n="vehicleModal.status">Status</label>
                         <select id="vehicleStatus">
-                            <option value="active">Active</option>
-                            <option value="maintenance">In Maintenance</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="active" data-i18n="vehicles.active">Active</option>
+                            <option value="maintenance" data-i18n="vehicles.inMaintenance">In Maintenance</option>
+                            <option value="inactive" data-i18n="vehicles.inactive">Inactive</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="purchaseDate">Purchase Date</label>
+                        <label for="purchaseDate" data-i18n="vehicleModal.purchaseDate">Purchase Date</label>
                         <input type="date" id="purchaseDate">
                     </div>
                     <div class="form-group">
-                        <label for="purchasePrice">Purchase Price</label>
+                        <label for="purchasePrice" data-i18n="vehicleModal.purchasePrice">Purchase Price</label>
                         <input type="number" id="purchasePrice" min="0" step="0.01" placeholder="e.g., 25000">
                     </div>
                     <div class="form-group">
-                        <label for="insuranceExpiry">Insurance Expiry</label>
+                        <label for="insuranceExpiry" data-i18n="vehicleModal.insuranceExpiry">Insurance Expiry</label>
                         <input type="date" id="insuranceExpiry">
                     </div>
                     <div class="form-group">
-                        <label for="inspectionExpiry">Inspection Expiry (TÜV)</label>
+                        <label for="inspectionExpiry" data-i18n="vehicleModal.inspectionExpiry">Inspection Expiry (TÜV)</label>
                         <input type="date" id="inspectionExpiry">
                     </div>
                     <div class="form-group full-width">
-                        <label for="notes">Notes</label>
-                        <textarea id="notes" rows="3" placeholder="Additional notes about the vehicle"></textarea>
+                        <label for="notes" data-i18n="vehicleModal.notes">Notes</label>
+                        <textarea id="notes" rows="3" data-i18n-placeholder="vehicleModal.notesPlaceholder" placeholder="Additional notes about the vehicle"></textarea>
                     </div>
                     <div class="form-group full-width">
-                        <label for="vehicleImage">Vehicle Image</label>
+                        <label for="vehicleImage" data-i18n="vehicleModal.image">Vehicle Image</label>
                         <div class="image-upload">
                             <input type="file" id="vehicleImage" accept="image/*" onchange="previewImage(event)">
                             <div class="image-preview" id="imagePreview">
                                 <i class="fas fa-camera"></i>
-                                <span>Click to upload image</span>
+                                <span data-i18n="vehicleModal.uploadImage">Click to upload image</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeVehicleModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Vehicle</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeVehicleModal()" data-i18n="vehicleModal.cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="vehicleModal.save">Save Vehicle</button>
                 </div>
             </form>
         </div>
@@ -476,7 +486,7 @@
     <div class="modal" id="documentModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Upload Document</h2>
+                <h2 data-i18n="documentModal.title">Upload Document</h2>
                 <button class="close-btn" onclick="closeDocumentModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -485,53 +495,53 @@
                 <input type="hidden" id="documentId">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="docVehicle">Vehicle *</label>
+                        <label for="docVehicle" data-i18n="documentModal.vehicle">Vehicle</label> *
                         <select id="docVehicle" required>
-                            <option value="">Select vehicle</option>
+                            <option value="" data-i18n="documentModal.selectVehicle">Select vehicle</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="docType">Document Type *</label>
+                        <label for="docType" data-i18n="documentModal.type">Document Type</label> *
                         <select id="docType" required>
-                            <option value="">Select type</option>
-                            <option value="registration">Registration</option>
-                            <option value="insurance">Insurance</option>
-                            <option value="inspection">Inspection Certificate</option>
-                            <option value="receipt">Receipt/Invoice</option>
-                            <option value="other">Other</option>
+                            <option value="" data-i18n="documentModal.selectType">Select type</option>
+                            <option value="registration" data-i18n="documents.registration">Registration</option>
+                            <option value="insurance" data-i18n="documents.insurance">Insurance</option>
+                            <option value="inspection" data-i18n="documents.inspectionCertificate">Inspection Certificate</option>
+                            <option value="receipt" data-i18n="documents.receiptInvoice">Receipt/Invoice</option>
+                            <option value="other" data-i18n="documents.other">Other</option>
                         </select>
                     </div>
                     <div class="form-group full-width">
-                        <label for="docName">Document Name *</label>
+                        <label for="docName" data-i18n="documentModal.name">Document Name</label> *
                         <input type="text" id="docName" required placeholder="e.g., Insurance Policy 2024">
                     </div>
                     <div class="form-group">
-                        <label for="docDate">Document Date</label>
+                        <label for="docDate" data-i18n="documentModal.date">Document Date</label>
                         <input type="date" id="docDate">
                     </div>
                     <div class="form-group">
-                        <label for="docExpiry">Expiry Date</label>
+                        <label for="docExpiry" data-i18n="documentModal.expiry">Expiry Date</label>
                         <input type="date" id="docExpiry">
                     </div>
                     <div class="form-group full-width">
-                        <label for="docFile">File *</label>
+                        <label for="docFile" data-i18n="documentModal.file">File</label> *
                         <div class="file-upload">
                             <input type="file" id="docFile" required onchange="previewDocument(event)">
                             <div class="file-preview" id="filePreview">
                                 <i class="fas fa-cloud-upload-alt"></i>
-                                <span>Click to select file</span>
-                                <small>PDF, Images, or Documents</small>
+                                <span data-i18n="documents.selectFile">Click to select file</span>
+                                <small data-i18n="documents.fileTypes">PDF, Images, or Documents</small>
                             </div>
                         </div>
                     </div>
                     <div class="form-group full-width">
-                        <label for="docNotes">Notes</label>
-                        <textarea id="docNotes" rows="2" placeholder="Additional notes"></textarea>
+                        <label for="docNotes" data-i18n="documentModal.notes">Notes</label>
+                        <textarea id="docNotes" rows="2" data-i18n-placeholder="documentModal.notesPlaceholder" placeholder="Additional notes"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeDocumentModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Document</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeDocumentModal()" data-i18n="documentModal.cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="documentModal.save">Save Document</button>
                 </div>
             </form>
         </div>
@@ -541,7 +551,7 @@
     <div class="modal" id="maintenanceModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="maintenanceModalTitle">Schedule Maintenance</h2>
+                <h2 id="maintenanceModalTitle" data-i18n="maintenanceModal.addTitle">Schedule Maintenance</h2>
                 <button class="close-btn" onclick="closeMaintenanceModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -550,60 +560,60 @@
                 <input type="hidden" id="maintenanceId">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="maintVehicle">Vehicle *</label>
+                        <label for="maintVehicle" data-i18n="maintenanceModal.vehicle">Vehicle</label> *
                         <select id="maintVehicle" required>
-                            <option value="">Select vehicle</option>
+                            <option value="" data-i18n="maintenanceModal.selectVehicle">Select vehicle</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="maintType">Maintenance Type *</label>
+                        <label for="maintType" data-i18n="maintenanceModal.type">Maintenance Type</label> *
                         <select id="maintType" required>
-                            <option value="">Select type</option>
-                            <option value="oil-change">Oil Change</option>
-                            <option value="tire-rotation">Tire Rotation</option>
-                            <option value="brake-service">Brake Service</option>
-                            <option value="inspection">General Inspection</option>
-                            <option value="tuv">TÜV/Safety Inspection</option>
-                            <option value="repair">Repair</option>
-                            <option value="other">Other</option>
+                            <option value="" data-i18n="maintenanceModal.selectType">Select type</option>
+                            <option value="oil-change" data-i18n="maintType.oil-change">Oil Change</option>
+                            <option value="tire-rotation" data-i18n="maintType.tire-rotation">Tire Rotation</option>
+                            <option value="brake-service" data-i18n="maintType.brake-service">Brake Service</option>
+                            <option value="inspection" data-i18n="maintType.inspection">General Inspection</option>
+                            <option value="tuv" data-i18n="maintType.tuv">TÜV/Safety Inspection</option>
+                            <option value="repair" data-i18n="maintType.repair">Repair</option>
+                            <option value="other" data-i18n="maintType.other">Other</option>
                         </select>
                     </div>
                     <div class="form-group full-width">
-                        <label for="maintDescription">Description *</label>
+                        <label for="maintDescription" data-i18n="maintenanceModal.description">Description</label> *
                         <input type="text" id="maintDescription" required placeholder="e.g., Regular oil change">
                     </div>
                     <div class="form-group">
-                        <label for="maintDate">Scheduled Date *</label>
+                        <label for="maintDate" data-i18n="maintenanceModal.scheduledDate">Scheduled Date</label> *
                         <input type="date" id="maintDate" required>
                     </div>
                     <div class="form-group">
-                        <label for="maintStatus">Status</label>
+                        <label for="maintStatus" data-i18n="maintenanceModal.status">Status</label>
                         <select id="maintStatus">
-                            <option value="scheduled">Scheduled</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
+                            <option value="scheduled" data-i18n="maintenance.scheduled">Scheduled</option>
+                            <option value="in-progress" data-i18n="maintenance.inProgress">In Progress</option>
+                            <option value="completed" data-i18n="maintenance.completed">Completed</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="maintMileage">Mileage at Service</label>
-                        <input type="number" id="maintMileage" min="0" placeholder="Current mileage">
+                        <label for="maintMileage" data-i18n="maintenanceModal.mileage">Mileage at Service</label>
+                        <input type="number" id="maintMileage" min="0" data-i18n-placeholder="maintenanceModal.mileagePlaceholder" placeholder="Current mileage">
                     </div>
                     <div class="form-group">
-                        <label for="maintCost">Cost</label>
+                        <label for="maintCost" data-i18n="maintenanceModal.cost">Cost</label>
                         <input type="number" id="maintCost" min="0" step="0.01" placeholder="e.g., 150.00">
                     </div>
                     <div class="form-group full-width">
-                        <label for="maintProvider">Service Provider</label>
+                        <label for="maintProvider" data-i18n="maintenanceModal.provider">Service Provider</label>
                         <input type="text" id="maintProvider" placeholder="e.g., AutoService GmbH">
                     </div>
                     <div class="form-group full-width">
-                        <label for="maintNotes">Notes</label>
-                        <textarea id="maintNotes" rows="2" placeholder="Additional notes"></textarea>
+                        <label for="maintNotes" data-i18n="maintenanceModal.notes">Notes</label>
+                        <textarea id="maintNotes" rows="2" data-i18n-placeholder="maintenanceModal.notesPlaceholder" placeholder="Additional notes"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeMaintenanceModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeMaintenanceModal()" data-i18n="maintenanceModal.cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="maintenanceModal.save">Save</button>
                 </div>
             </form>
         </div>
@@ -613,7 +623,7 @@
     <div class="modal" id="vehicleDetailModal">
         <div class="modal-content modal-large">
             <div class="modal-header">
-                <h2 id="vehicleDetailTitle">Vehicle Details</h2>
+                <h2 id="vehicleDetailTitle" data-i18n="vehicleDetail.title">Vehicle Details</h2>
                 <button class="close-btn" onclick="closeVehicleDetailModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -631,17 +641,17 @@
     <div class="modal" id="confirmModal">
         <div class="modal-content modal-small">
             <div class="modal-header">
-                <h2 id="confirmTitle">Confirm Action</h2>
+                <h2 id="confirmTitle" data-i18n="confirm.title">Confirm Action</h2>
                 <button class="close-btn" onclick="closeConfirmModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="confirm-body">
-                <p id="confirmMessage">Are you sure you want to proceed?</p>
+                <p id="confirmMessage" data-i18n="confirm.message">Are you sure you want to proceed?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmBtn">Confirm</button>
+                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()" data-i18n="confirm.cancel">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBtn" data-i18n="confirm.confirm">Confirm</button>
             </div>
         </div>
     </div>
