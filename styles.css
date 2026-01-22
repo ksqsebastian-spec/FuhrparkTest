@@ -45,6 +45,106 @@ body {
     line-height: 1.6;
 }
 
+/* Login Overlay */
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.login-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.login-container {
+    background: var(--card-background);
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+}
+
+.login-logo {
+    margin-bottom: 32px;
+}
+
+.login-logo .logo-icon {
+    color: var(--primary-color);
+    margin-bottom: 12px;
+}
+
+.login-logo h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.login-input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.login-input-group i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+.login-input-group input {
+    width: 100%;
+    padding: 14px 14px 14px 44px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 16px;
+    background: var(--background-color);
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.login-input-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-full {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+}
+
+.login-error {
+    margin-top: 16px;
+    color: var(--danger-color);
+    font-size: 14px;
+    display: none;
+}
+
+.login-error.show {
+    display: block;
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+
 /* App Container */
 .app-container {
     display: flex;
