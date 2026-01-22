@@ -9,6 +9,30 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- Password Protection Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-container">
+            <div class="login-logo">
+                <svg class="logo-icon" width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="16" width="24" height="8" fill="currentColor"/>
+                    <rect x="8" y="12" width="16" height="4" fill="currentColor"/>
+                    <rect x="10" y="8" width="12" height="4" fill="currentColor"/>
+                    <rect x="6" y="24" width="6" height="4" fill="currentColor"/>
+                    <rect x="20" y="24" width="6" height="4" fill="currentColor"/>
+                </svg>
+                <h1>FuhrparkPro</h1>
+            </div>
+            <form id="loginForm" onsubmit="checkPassword(event)">
+                <div class="login-input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="passwordInput" data-i18n-placeholder="login.passwordPlaceholder" placeholder="Enter password" required autofocus>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" data-i18n="login.submit">Login</button>
+                <p class="login-error" id="loginError" data-i18n="login.error">Incorrect password</p>
+            </form>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">

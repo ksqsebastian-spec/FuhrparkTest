@@ -2,6 +2,52 @@
 // Supabase Backend
 
 // ============================================
+// Password Protection
+// ============================================
+const APP_PASSWORD = '1234';
+const AUTH_STORAGE_KEY = 'fuhrparkpro_authenticated';
+
+function checkPassword(event) {
+    event.preventDefault();
+    const passwordInput = document.getElementById('passwordInput');
+    const loginError = document.getElementById('loginError');
+    const enteredPassword = passwordInput.value;
+
+    if (enteredPassword === APP_PASSWORD) {
+        // Store authentication in sessionStorage (clears when browser closes)
+        sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
+        hideLoginOverlay();
+    } else {
+        loginError.classList.add('show');
+        passwordInput.value = '';
+        passwordInput.focus();
+        setTimeout(() => {
+            loginError.classList.remove('show');
+        }, 3000);
+    }
+}
+
+function hideLoginOverlay() {
+    const overlay = document.getElementById('loginOverlay');
+    overlay.classList.add('hidden');
+    setTimeout(() => {
+        overlay.style.display = 'none';
+    }, 300);
+}
+
+function checkAuthentication() {
+    const isAuthenticated = sessionStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+    if (isAuthenticated) {
+        hideLoginOverlay();
+    }
+}
+
+function logout() {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    location.reload();
+}
+
+// ============================================
 // Common Car Makes for Autocomplete
 // ============================================
 const commonCarMakes = [
@@ -271,7 +317,12 @@ const translations = {
 
         // General
         'general.unknown': 'Unknown',
-        'general.cloudStorage': 'Cloud Storage'
+        'general.cloudStorage': 'Cloud Storage',
+
+        // Login
+        'login.passwordPlaceholder': 'Enter password',
+        'login.submit': 'Login',
+        'login.error': 'Incorrect password'
     },
     de: {
         // Navigation
@@ -528,7 +579,12 @@ const translations = {
 
         // General
         'general.unknown': 'Unbekannt',
-        'general.cloudStorage': 'Cloud-Speicher'
+        'general.cloudStorage': 'Cloud-Speicher',
+
+        // Login
+        'login.passwordPlaceholder': 'Passwort eingeben',
+        'login.submit': 'Anmelden',
+        'login.error': 'Falsches Passwort'
     }
 };
 
@@ -2384,6 +2440,9 @@ function initEventListeners() {
 // Initialization
 // ============================================
 async function init() {
+    // Check if user is already authenticated
+    checkAuthentication();
+
     // Load language from localStorage immediately for instant UI update on refresh
     const savedLanguage = localStorage.getItem('fuhrparkpro_language');
     if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'de')) {
