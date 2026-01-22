@@ -1,29 +1,58 @@
 // FuhrparkPro - Fleet Management Application
-// Supabase Backend
+// API Backend with Vercel Functions
 
 // ============================================
-// Password Protection
+// Authentication
 // ============================================
-const APP_PASSWORD = '1234';
-const AUTH_STORAGE_KEY = 'fuhrparkpro_authenticated';
+const AUTH_TOKEN_KEY = 'fuhrparkpro_token';
 
-function checkPassword(event) {
+function getAuthToken() {
+    return sessionStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+function setAuthToken(token) {
+    sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+}
+
+async function checkPassword(event) {
     event.preventDefault();
     const passwordInput = document.getElementById('passwordInput');
     const loginError = document.getElementById('loginError');
+    const loginBtn = document.querySelector('#loginForm button[type="submit"]');
     const enteredPassword = passwordInput.value;
 
-    if (enteredPassword === APP_PASSWORD) {
-        // Store authentication in sessionStorage (clears when browser closes)
-        sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
-        hideLoginOverlay();
-    } else {
+    // Disable button during request
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: enteredPassword })
+        });
+
+        if (response.ok) {
+            const { token } = await response.json();
+            setAuthToken(token);
+            hideLoginOverlay();
+        } else {
+            loginError.classList.add('show');
+            passwordInput.value = '';
+            passwordInput.focus();
+            setTimeout(() => {
+                loginError.classList.remove('show');
+            }, 3000);
+        }
+    } catch (error) {
+        console.error('Login error:', error);
         loginError.classList.add('show');
-        passwordInput.value = '';
-        passwordInput.focus();
         setTimeout(() => {
             loginError.classList.remove('show');
         }, 3000);
+    } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = t('login.submit');
     }
 }
 
@@ -36,15 +65,85 @@ function hideLoginOverlay() {
 }
 
 function checkAuthentication() {
-    const isAuthenticated = sessionStorage.getItem(AUTH_STORAGE_KEY) === 'true';
-    if (isAuthenticated) {
+    const token = getAuthToken();
+    if (token) {
         hideLoginOverlay();
     }
 }
 
 function logout() {
-    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
     location.reload();
+}
+
+// ============================================
+// API Helper
+// ============================================
+async function api(endpoint, options = {}) {
+    const token = getAuthToken();
+
+    const config = {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            ...options.headers
+        }
+    };
+
+    if (options.body && typeof options.body === 'object') {
+        config.body = JSON.stringify(options.body);
+    }
+
+    const response = await fetch(`/api${endpoint}`, config);
+
+    // Handle 401 - redirect to login
+    if (response.status === 401) {
+        sessionStorage.removeItem(AUTH_TOKEN_KEY);
+        location.reload();
+        throw new Error('Unauthorized');
+    }
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(error.error || 'Request failed');
+    }
+
+    // Handle 204 No Content
+    if (response.status === 204) {
+        return null;
+    }
+
+    return response.json();
+}
+
+// Upload helper function
+async function uploadFile(file, folder = 'files') {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+            try {
+                const base64Data = reader.result.split(',')[1];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${generateId()}.${fileExt}`;
+
+                const result = await api('/upload', {
+                    method: 'POST',
+                    body: {
+                        fileName: fileName,
+                        fileData: base64Data,
+                        folder: folder
+                    }
+                });
+
+                resolve(result.publicUrl);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+    });
 }
 
 // ============================================
@@ -734,15 +833,6 @@ function applyTranslations() {
 }
 
 // ============================================
-// Supabase Configuration
-// ============================================
-const SUPABASE_URL = 'https://uhrjpofsrxnsugnmogok.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_aT4-e31_wNRItXtevixhKg_VjhXEEpa';
-
-// Initialize Supabase client
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ============================================
 // Application State
 // ============================================
 let state = {
@@ -1284,25 +1374,25 @@ function showDayEvents(dateStr) {
 }
 
 // ============================================
-// Supabase Data Functions
+// API Data Functions
 // ============================================
 async function loadAllData() {
     showLoading(true);
     try {
-        const [vehiclesRes, documentsRes, maintenanceRes, settingsRes] = await Promise.all([
-            supabaseClient.from('vehicles').select('*').order('created_at', { ascending: false }),
-            supabaseClient.from('documents').select('*').order('created_at', { ascending: false }),
-            supabaseClient.from('maintenance').select('*').order('date', { ascending: true }),
-            supabaseClient.from('settings').select('*').limit(1)
+        const [vehiclesData, documentsData, maintenanceData, settingsData] = await Promise.all([
+            api('/vehicles'),
+            api('/documents'),
+            api('/maintenance'),
+            api('/settings')
         ]);
 
-        if (vehiclesRes.data) state.vehicles = vehiclesRes.data.map(mapVehicleFromDB);
-        if (documentsRes.data) state.documents = documentsRes.data.map(mapDocumentFromDB);
-        if (maintenanceRes.data) state.maintenance = maintenanceRes.data.map(mapMaintenanceFromDB);
-        if (settingsRes.data && settingsRes.data[0]) {
+        if (vehiclesData) state.vehicles = vehiclesData.map(mapVehicleFromDB);
+        if (documentsData) state.documents = documentsData.map(mapDocumentFromDB);
+        if (maintenanceData) state.maintenance = maintenanceData.map(mapMaintenanceFromDB);
+        if (settingsData && settingsData.id) {
             // Preserve language from localStorage before overwriting settings
             const preservedLanguage = localStorage.getItem('fuhrparkpro_language');
-            state.settings = mapSettingsFromDB(settingsRes.data[0]);
+            state.settings = mapSettingsFromDB(settingsData);
             // Restore language from localStorage (localStorage is authoritative for language)
             if (preservedLanguage && (preservedLanguage === 'en' || preservedLanguage === 'de')) {
                 state.settings.language = preservedLanguage;
@@ -1835,22 +1925,11 @@ async function saveVehicle(event) {
 
     // Handle image upload
     if (imageInput.files[0]) {
-        const file = imageInput.files[0];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${generateId()}.${fileExt}`;
-
-        const { data: uploadData, error: uploadError } = await supabaseClient.storage
-            .from('documents')
-            .upload(`vehicle-images/${fileName}`, file);
-
-        if (uploadError) {
+        try {
+            imageUrl = await uploadFile(imageInput.files[0], 'vehicle-images');
+        } catch (uploadError) {
             console.error('Error uploading image:', uploadError);
             showToast(t('toast.imageUploadError'), 'error');
-        } else {
-            const { data: urlData } = supabaseClient.storage
-                .from('documents')
-                .getPublicUrl(`vehicle-images/${fileName}`);
-            imageUrl = urlData.publicUrl;
         }
     } else if (id) {
         // Keep existing image
@@ -1881,19 +1960,16 @@ async function saveVehicle(event) {
 
     try {
         if (id) {
-            const { error } = await supabaseClient
-                .from('vehicles')
-                .update(dbData)
-                .eq('id', id);
-
-            if (error) throw error;
+            await api(`/vehicles/${id}`, {
+                method: 'PATCH',
+                body: dbData
+            });
             showToast(t('toast.vehicleUpdated'), 'success');
         } else {
-            const { error } = await supabaseClient
-                .from('vehicles')
-                .insert([dbData]);
-
-            if (error) throw error;
+            await api('/vehicles', {
+                method: 'POST',
+                body: dbData
+            });
             showToast(t('toast.vehicleAdded'), 'success');
         }
 
@@ -1918,12 +1994,7 @@ function editVehicle(id) {
 async function deleteVehicle(id) {
     showConfirmDialog(t('confirm.deleteVehicle'), t('confirm.deleteVehicleMsg'), async () => {
         try {
-            const { error } = await supabaseClient
-                .from('vehicles')
-                .delete()
-                .eq('id', id);
-
-            if (error) throw error;
+            await api(`/vehicles/${id}`, { method: 'DELETE' });
 
             await loadAllData();
             renderVehicles();
@@ -2267,19 +2338,8 @@ async function saveDocument(event) {
     }
 
     try {
-        // Upload file to Supabase Storage
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${generateId()}.${fileExt}`;
-
-        const { data: uploadData, error: uploadError } = await supabaseClient.storage
-            .from('documents')
-            .upload(`files/${fileName}`, file);
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabaseClient.storage
-            .from('documents')
-            .getPublicUrl(`files/${fileName}`);
+        // Upload file via API
+        const fileUrl = await uploadFile(file, 'files');
 
         const docData = {
             vehicleId: document.getElementById('docVehicle').value,
@@ -2289,15 +2349,14 @@ async function saveDocument(event) {
             expiry: document.getElementById('docExpiry').value,
             notes: document.getElementById('docNotes').value,
             fileName: file.name,
-            filePath: urlData.publicUrl,
+            filePath: fileUrl,
             fileType: file.type
         };
 
-        const { error } = await supabaseClient
-            .from('documents')
-            .insert([mapDocumentToDB(docData)]);
-
-        if (error) throw error;
+        await api('/documents', {
+            method: 'POST',
+            body: mapDocumentToDB(docData)
+        });
 
         await loadAllData();
         closeDocumentModal();
@@ -2330,12 +2389,7 @@ function downloadDocument(id) {
 async function deleteDocument(id) {
     showConfirmDialog(t('confirm.deleteDocument'), t('confirm.deleteDocumentMsg'), async () => {
         try {
-            const { error } = await supabaseClient
-                .from('documents')
-                .delete()
-                .eq('id', id);
-
-            if (error) throw error;
+            await api(`/documents/${id}`, { method: 'DELETE' });
 
             await loadAllData();
             renderDocuments();
@@ -2495,19 +2549,16 @@ async function saveMaintenance(event) {
 
     try {
         if (id) {
-            const { error } = await supabaseClient
-                .from('maintenance')
-                .update(dbData)
-                .eq('id', id);
-
-            if (error) throw error;
+            await api(`/maintenance/${id}`, {
+                method: 'PATCH',
+                body: dbData
+            });
             showToast(t('toast.maintenanceUpdated'), 'success');
         } else {
-            const { error } = await supabaseClient
-                .from('maintenance')
-                .insert([dbData]);
-
-            if (error) throw error;
+            await api('/maintenance', {
+                method: 'POST',
+                body: dbData
+            });
             showToast(t('toast.maintenanceScheduled'), 'success');
         }
 
@@ -2531,12 +2582,7 @@ function editMaintenance(id) {
 async function deleteMaintenance(id) {
     showConfirmDialog(t('confirm.deleteMaintenance'), t('confirm.deleteMaintenanceMsg'), async () => {
         try {
-            const { error } = await supabaseClient
-                .from('maintenance')
-                .delete()
-                .eq('id', id);
-
-            if (error) throw error;
+            await api(`/maintenance/${id}`, { method: 'DELETE' });
 
             await loadAllData();
             renderMaintenance();
@@ -2598,20 +2644,12 @@ async function saveSettingsToSupabase() {
     try {
         const dbData = mapSettingsToDB(state.settings);
 
-        if (state.settings.id) {
-            await supabaseClient
-                .from('settings')
-                .update(dbData)
-                .eq('id', state.settings.id);
-        } else {
-            const { data } = await supabaseClient
-                .from('settings')
-                .insert([dbData])
-                .select()
-                .single();
+        const data = await api('/settings', {
+            method: 'PATCH',
+            body: dbData
+        });
 
-            if (data) state.settings.id = data.id;
-        }
+        if (data && data.id) state.settings.id = data.id;
     } catch (error) {
         console.error('Error saving settings:', error);
     }
@@ -2774,9 +2812,8 @@ async function importData(event) {
                         for (const vehicle of data.vehicles) {
                             try {
                                 const dbData = mapVehicleToDB(vehicle);
-                                const { error } = await supabaseClient.from('vehicles').insert([dbData]);
-                                if (error) errorCount++;
-                                else successCount++;
+                                await api('/vehicles', { method: 'POST', body: dbData });
+                                successCount++;
                             } catch (err) {
                                 errorCount++;
                             }
@@ -2788,9 +2825,8 @@ async function importData(event) {
                         for (const doc of data.documents) {
                             try {
                                 const dbData = mapDocumentToDB(doc);
-                                const { error } = await supabaseClient.from('documents').insert([dbData]);
-                                if (error) errorCount++;
-                                else successCount++;
+                                await api('/documents', { method: 'POST', body: dbData });
+                                successCount++;
                             } catch (err) {
                                 errorCount++;
                             }
@@ -2802,9 +2838,8 @@ async function importData(event) {
                         for (const maint of data.maintenance) {
                             try {
                                 const dbData = mapMaintenanceToDB(maint);
-                                const { error } = await supabaseClient.from('maintenance').insert([dbData]);
-                                if (error) errorCount++;
-                                else successCount++;
+                                await api('/maintenance', { method: 'POST', body: dbData });
+                                successCount++;
                             } catch (err) {
                                 errorCount++;
                             }
@@ -2863,16 +2898,8 @@ async function importFromAvrios(event) {
             for (const vehicle of vehicles) {
                 try {
                     const dbData = mapVehicleToDB(vehicle);
-                    const { error } = await supabaseClient
-                        .from('vehicles')
-                        .insert([dbData]);
-
-                    if (error) {
-                        console.error('Error importing vehicle:', error);
-                        errorCount++;
-                    } else {
-                        successCount++;
-                    }
+                    await api('/vehicles', { method: 'POST', body: dbData });
+                    successCount++;
                 } catch (err) {
                     console.error('Error importing vehicle:', err);
                     errorCount++;
@@ -3103,11 +3130,7 @@ function normalizeVehicleStatus(value) {
 function clearAllData() {
     showConfirmDialog(t('confirm.clearAll'), t('confirm.clearAllMsg'), async () => {
         try {
-            await Promise.all([
-                supabaseClient.from('maintenance').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-                supabaseClient.from('documents').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-                supabaseClient.from('vehicles').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-            ]);
+            await api('/clear', { method: 'DELETE' });
 
             await loadAllData();
             updateDashboard();
