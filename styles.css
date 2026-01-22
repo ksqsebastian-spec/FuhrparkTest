@@ -770,6 +770,11 @@ body {
     color: var(--danger-color);
 }
 
+.vehicle-actions button.maintenance:hover {
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+}
+
 /* Vehicle List Item */
 .vehicle-list-item {
     display: flex;
@@ -1101,6 +1106,42 @@ body {
     color: var(--text-secondary);
 }
 
+/* Cost Summary */
+.cost-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--background-color);
+    border-radius: var(--radius);
+}
+
+.cost-item.highlight {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.cost-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.cost-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.cost-item.highlight .cost-value {
+    color: var(--primary-color);
+}
+
 /* Settings */
 .settings-container {
     display: grid;
@@ -1355,6 +1396,61 @@ body {
     min-height: 80px;
 }
 
+/* Input with Button (VIN Decoder) */
+.input-with-button {
+    display: flex;
+    gap: 8px;
+}
+
+.input-with-button input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: var(--background-color);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.input-with-button input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-with-button .btn-sm {
+    padding: 8px 12px;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+
+/* Auto-filled Animation */
+@keyframes autoFillPulse {
+    0% {
+        background-color: var(--background-color);
+        border-color: var(--border-color);
+    }
+    50% {
+        background-color: rgba(34, 197, 94, 0.15);
+        border-color: var(--success-color);
+    }
+    100% {
+        background-color: var(--background-color);
+        border-color: var(--border-color);
+    }
+}
+
+.auto-filled {
+    animation: autoFillPulse 1s ease;
+}
+
+/* VIN Decoded Success */
+.vin-decoded {
+    border-color: var(--success-color) !important;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2) !important;
+}
+
 /* Image Upload */
 .image-upload {
     position: relative;
@@ -1452,6 +1548,23 @@ body {
     border-style: solid;
     border-color: var(--success-color);
     background-color: rgba(34, 197, 94, 0.05);
+}
+
+/* Drag and Drop States */
+.dropzone.drag-over .file-preview {
+    border-color: var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.1);
+    transform: scale(1.02);
+}
+
+.dropzone.drag-over .file-preview i {
+    color: var(--primary-color);
+    animation: bounce 0.5s ease infinite alternate;
+}
+
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-5px); }
 }
 
 /* Vehicle Detail */

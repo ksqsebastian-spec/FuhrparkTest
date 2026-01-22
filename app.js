@@ -136,6 +136,7 @@ const translations = {
         'vehicles.addVehicle': 'Add Vehicle',
         'vehicles.edit': 'Edit',
         'vehicles.delete': 'Delete',
+        'vehicles.quickMaintenance': 'Quick Maintenance',
         'vehicles.unknownVehicle': 'Unknown vehicle',
 
         // Documents
@@ -155,6 +156,8 @@ const translations = {
         'documents.noDocsForVehicle': 'No documents for this vehicle',
         'documents.expires': 'Expires',
         'documents.selectFile': 'Click to select file',
+        'documents.dragDropFile': 'Drag & drop or click to select',
+        'documents.dropHere': 'Drop file here',
         'documents.fileTypes': 'PDF, Images, or Documents',
 
         // Maintenance
@@ -354,7 +357,33 @@ const translations = {
         // Login
         'login.passwordPlaceholder': 'Enter password',
         'login.submit': 'Login',
-        'login.error': 'Incorrect password'
+        'login.error': 'Incorrect password',
+
+        // VIN Decoder
+        'vin.decode': 'Decode',
+        'vin.decoding': 'Decoding...',
+        'vin.success': 'Vehicle data retrieved successfully',
+        'vin.notFound': 'No data found for this VIN',
+        'vin.invalid': 'Invalid VIN (must be 17 characters)',
+        'vin.error': 'Error decoding VIN',
+
+        // Reminders
+        'reminder.insuranceExpired': 'Insurance expired for {vehicle}',
+        'reminder.insuranceExpiring': 'Insurance expires in {days} days for {vehicle}',
+        'reminder.inspectionExpired': 'TÜV/Inspection expired for {vehicle}',
+        'reminder.inspectionExpiring': 'TÜV/Inspection expires in {days} days for {vehicle}',
+        'reminder.maintenanceOverdue': 'Maintenance overdue: {description} for {vehicle}',
+        'reminder.maintenanceToday': 'Maintenance today: {description} for {vehicle}',
+        'reminder.maintenanceSoon': 'Maintenance in {days} days: {description} for {vehicle}',
+
+        // Cost Tracking
+        'costs.totalCosts': 'Total Costs',
+        'costs.maintenanceCosts': 'Maintenance Costs',
+        'costs.purchaseCost': 'Purchase Cost',
+        'costs.costPerVehicle': 'Cost per Vehicle',
+        'costs.thisYear': 'This Year',
+        'costs.allTime': 'All Time',
+        'costs.noCosts': 'No costs recorded'
     },
     de: {
         // Navigation
@@ -404,6 +433,7 @@ const translations = {
         'vehicles.addVehicle': 'Fahrzeug hinzufügen',
         'vehicles.edit': 'Bearbeiten',
         'vehicles.delete': 'Löschen',
+        'vehicles.quickMaintenance': 'Schnellwartung',
         'vehicles.unknownVehicle': 'Unbekanntes Fahrzeug',
 
         // Documents
@@ -423,6 +453,8 @@ const translations = {
         'documents.noDocsForVehicle': 'Keine Dokumente für dieses Fahrzeug',
         'documents.expires': 'Läuft ab',
         'documents.selectFile': 'Klicken um Datei auszuwählen',
+        'documents.dragDropFile': 'Datei hierher ziehen oder klicken',
+        'documents.dropHere': 'Datei hier ablegen',
         'documents.fileTypes': 'PDF, Bilder oder Dokumente',
 
         // Maintenance
@@ -622,7 +654,33 @@ const translations = {
         // Login
         'login.passwordPlaceholder': 'Passwort eingeben',
         'login.submit': 'Anmelden',
-        'login.error': 'Falsches Passwort'
+        'login.error': 'Falsches Passwort',
+
+        // VIN Decoder
+        'vin.decode': 'Dekodieren',
+        'vin.decoding': 'Dekodiere...',
+        'vin.success': 'Fahrzeugdaten erfolgreich abgerufen',
+        'vin.notFound': 'Keine Daten für diese FIN gefunden',
+        'vin.invalid': 'Ungültige FIN (muss 17 Zeichen haben)',
+        'vin.error': 'Fehler beim Dekodieren der FIN',
+
+        // Reminders
+        'reminder.insuranceExpired': 'Versicherung abgelaufen für {vehicle}',
+        'reminder.insuranceExpiring': 'Versicherung läuft in {days} Tagen ab für {vehicle}',
+        'reminder.inspectionExpired': 'TÜV/HU abgelaufen für {vehicle}',
+        'reminder.inspectionExpiring': 'TÜV/HU läuft in {days} Tagen ab für {vehicle}',
+        'reminder.maintenanceOverdue': 'Wartung überfällig: {description} für {vehicle}',
+        'reminder.maintenanceToday': 'Wartung heute: {description} für {vehicle}',
+        'reminder.maintenanceSoon': 'Wartung in {days} Tagen: {description} für {vehicle}',
+
+        // Cost Tracking
+        'costs.totalCosts': 'Gesamtkosten',
+        'costs.maintenanceCosts': 'Wartungskosten',
+        'costs.purchaseCost': 'Kaufpreis',
+        'costs.costPerVehicle': 'Kosten pro Fahrzeug',
+        'costs.thisYear': 'Dieses Jahr',
+        'costs.allTime': 'Gesamt',
+        'costs.noCosts': 'Keine Kosten erfasst'
     }
 };
 
@@ -791,6 +849,284 @@ function showLoading(show) {
     if (overlay) {
         overlay.classList.toggle('active', show);
     }
+}
+
+// ============================================
+// VIN Decoder (NHTSA API)
+// ============================================
+async function decodeVIN() {
+    const vinInput = document.getElementById('vin');
+    const vin = vinInput.value.trim().toUpperCase();
+    const decodeBtn = document.getElementById('vinDecodeBtn');
+
+    // Validate VIN length
+    if (vin.length !== 17) {
+        showToast(t('vin.invalid'), 'warning');
+        return;
+    }
+
+    // Show loading state
+    const originalText = decodeBtn.innerHTML;
+    decodeBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('vin.decoding')}`;
+    decodeBtn.disabled = true;
+
+    try {
+        const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${vin}?format=json`);
+        const data = await response.json();
+
+        if (data.Results) {
+            const results = data.Results;
+
+            // Extract relevant fields
+            const getValue = (variableId) => {
+                const result = results.find(r => r.VariableId === variableId);
+                return result?.Value || null;
+            };
+
+            // Map NHTSA fields to our form fields
+            const make = getValue(26); // Make
+            const model = getValue(28); // Model
+            const year = getValue(29); // Model Year
+            const fuelType = getValue(24); // Fuel Type - Primary
+            const vehicleType = getValue(39); // Vehicle Type
+
+            // Track if we found any data
+            let foundData = false;
+
+            // Auto-fill fields with animation
+            if (make) {
+                setFieldWithAnimation('make', make);
+                foundData = true;
+            }
+            if (model) {
+                setFieldWithAnimation('model', model);
+                foundData = true;
+            }
+            if (year) {
+                setFieldWithAnimation('year', year);
+                foundData = true;
+            }
+            if (fuelType) {
+                const normalizedFuel = normalizeFuelTypeFromVIN(fuelType);
+                if (normalizedFuel) {
+                    setFieldWithAnimation('fuelType', normalizedFuel);
+                    foundData = true;
+                }
+            }
+            if (vehicleType) {
+                const normalizedType = normalizeVehicleTypeFromVIN(vehicleType);
+                if (normalizedType) {
+                    setFieldWithAnimation('vehicleType', normalizedType);
+                    foundData = true;
+                }
+            }
+
+            if (foundData) {
+                showToast(t('vin.success'), 'success');
+                // Add success indicator to VIN field
+                vinInput.classList.add('vin-decoded');
+                setTimeout(() => vinInput.classList.remove('vin-decoded'), 2000);
+            } else {
+                showToast(t('vin.notFound'), 'warning');
+            }
+        } else {
+            showToast(t('vin.notFound'), 'warning');
+        }
+    } catch (error) {
+        console.error('VIN decode error:', error);
+        showToast(t('vin.error'), 'error');
+    } finally {
+        // Restore button state
+        decodeBtn.innerHTML = originalText;
+        decodeBtn.disabled = false;
+    }
+}
+
+function setFieldWithAnimation(fieldId, value) {
+    const field = document.getElementById(fieldId);
+    if (field) {
+        field.value = value;
+        field.classList.add('auto-filled');
+        setTimeout(() => field.classList.remove('auto-filled'), 1500);
+    }
+}
+
+function normalizeFuelTypeFromVIN(fuelType) {
+    if (!fuelType) return null;
+    const lower = fuelType.toLowerCase();
+    if (lower.includes('gasoline') || lower.includes('petrol')) return 'petrol';
+    if (lower.includes('diesel')) return 'diesel';
+    if (lower.includes('electric')) return 'electric';
+    if (lower.includes('hybrid')) return 'hybrid';
+    if (lower.includes('lpg') || lower.includes('propane')) return 'lpg';
+    return null;
+}
+
+function normalizeVehicleTypeFromVIN(vehicleType) {
+    if (!vehicleType) return null;
+    const lower = vehicleType.toLowerCase();
+    if (lower.includes('passenger') || lower.includes('car') || lower.includes('sedan') || lower.includes('coupe') || lower.includes('hatchback') || lower.includes('wagon')) return 'car';
+    if (lower.includes('truck')) return 'truck';
+    if (lower.includes('van') || lower.includes('mpv')) return 'van';
+    if (lower.includes('motorcycle')) return 'motorcycle';
+    return 'car';
+}
+
+// ============================================
+// Smart Reminders
+// ============================================
+function checkReminders() {
+    const reminders = [];
+    const now = new Date();
+    const reminderThreshold = 30; // Days before expiry to warn
+
+    // Check vehicle insurance and inspection expiry
+    state.vehicles.forEach(vehicle => {
+        const vehicleName = `${vehicle.make} ${vehicle.model} (${vehicle.licensePlate})`;
+
+        // Check insurance expiry
+        if (vehicle.insuranceExpiry) {
+            const expiryDate = new Date(vehicle.insuranceExpiry);
+            const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+            if (daysUntilExpiry < 0) {
+                reminders.push({
+                    type: 'danger',
+                    message: t('reminder.insuranceExpired').replace('{vehicle}', vehicleName),
+                    vehicleId: vehicle.id
+                });
+            } else if (daysUntilExpiry <= reminderThreshold) {
+                reminders.push({
+                    type: 'warning',
+                    message: t('reminder.insuranceExpiring').replace('{days}', daysUntilExpiry).replace('{vehicle}', vehicleName),
+                    vehicleId: vehicle.id
+                });
+            }
+        }
+
+        // Check inspection (TÜV) expiry
+        if (vehicle.inspectionExpiry) {
+            const expiryDate = new Date(vehicle.inspectionExpiry);
+            const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+            if (daysUntilExpiry < 0) {
+                reminders.push({
+                    type: 'danger',
+                    message: t('reminder.inspectionExpired').replace('{vehicle}', vehicleName),
+                    vehicleId: vehicle.id
+                });
+            } else if (daysUntilExpiry <= reminderThreshold) {
+                reminders.push({
+                    type: 'warning',
+                    message: t('reminder.inspectionExpiring').replace('{days}', daysUntilExpiry).replace('{vehicle}', vehicleName),
+                    vehicleId: vehicle.id
+                });
+            }
+        }
+    });
+
+    // Check maintenance
+    state.maintenance
+        .filter(m => m.status !== 'completed')
+        .forEach(maint => {
+            const vehicle = state.vehicles.find(v => v.id === maint.vehicleId);
+            const vehicleName = vehicle ? `${vehicle.make} ${vehicle.model}` : t('vehicles.unknownVehicle');
+            const maintDate = new Date(maint.date);
+            const daysUntil = Math.ceil((maintDate - now) / (1000 * 60 * 60 * 24));
+
+            if (daysUntil < 0) {
+                reminders.push({
+                    type: 'danger',
+                    message: t('reminder.maintenanceOverdue')
+                        .replace('{description}', maint.description)
+                        .replace('{vehicle}', vehicleName),
+                    maintenanceId: maint.id
+                });
+            } else if (daysUntil === 0) {
+                reminders.push({
+                    type: 'warning',
+                    message: t('reminder.maintenanceToday')
+                        .replace('{description}', maint.description)
+                        .replace('{vehicle}', vehicleName),
+                    maintenanceId: maint.id
+                });
+            } else if (daysUntil <= 7) {
+                reminders.push({
+                    type: 'info',
+                    message: t('reminder.maintenanceSoon')
+                        .replace('{days}', daysUntil)
+                        .replace('{description}', maint.description)
+                        .replace('{vehicle}', vehicleName),
+                    maintenanceId: maint.id
+                });
+            }
+        });
+
+    return reminders;
+}
+
+function showReminders() {
+    const reminders = checkReminders();
+
+    // Show only the most critical reminders (max 3) as toasts
+    const criticalReminders = reminders
+        .filter(r => r.type === 'danger')
+        .slice(0, 2);
+
+    const warningReminders = reminders
+        .filter(r => r.type === 'warning')
+        .slice(0, Math.max(0, 3 - criticalReminders.length));
+
+    // Show toasts with delay to avoid overwhelming the user
+    [...criticalReminders, ...warningReminders].forEach((reminder, index) => {
+        setTimeout(() => {
+            const toastType = reminder.type === 'danger' ? 'error' : 'warning';
+            showToast(reminder.message, toastType);
+        }, index * 1500);
+    });
+}
+
+// ============================================
+// Cost Tracking
+// ============================================
+function calculateTotalMaintenanceCosts() {
+    return state.maintenance.reduce((total, m) => {
+        return total + (parseFloat(m.cost) || 0);
+    }, 0);
+}
+
+function calculateVehicleMaintenanceCost(vehicleId) {
+    return state.maintenance
+        .filter(m => m.vehicleId === vehicleId)
+        .reduce((total, m) => total + (parseFloat(m.cost) || 0), 0);
+}
+
+function calculateThisYearMaintenanceCosts() {
+    const currentYear = new Date().getFullYear();
+    return state.maintenance
+        .filter(m => new Date(m.date).getFullYear() === currentYear)
+        .reduce((total, m) => total + (parseFloat(m.cost) || 0), 0);
+}
+
+function calculateTotalPurchaseCosts() {
+    return state.vehicles.reduce((total, v) => {
+        return total + (parseFloat(v.purchasePrice) || 0);
+    }, 0);
+}
+
+function getFleetCostSummary() {
+    const totalMaintenanceCosts = calculateTotalMaintenanceCosts();
+    const totalPurchaseCosts = calculateTotalPurchaseCosts();
+    const thisYearCosts = calculateThisYearMaintenanceCosts();
+    const vehicleCount = state.vehicles.length;
+
+    return {
+        totalMaintenanceCosts,
+        totalPurchaseCosts,
+        totalCosts: totalMaintenanceCosts + totalPurchaseCosts,
+        thisYearCosts,
+        averageCostPerVehicle: vehicleCount > 0 ? totalMaintenanceCosts / vehicleCount : 0
+    };
 }
 
 // ============================================
@@ -1160,6 +1496,12 @@ function updateDashboard() {
             </div>
         `;
     }
+
+    // Cost summary
+    const costSummary = getFleetCostSummary();
+    document.getElementById('totalMaintenanceCosts').textContent = formatCurrency(costSummary.totalMaintenanceCosts);
+    document.getElementById('thisYearCosts').textContent = formatCurrency(costSummary.thisYearCosts);
+    document.getElementById('avgCostPerVehicle').textContent = formatCurrency(costSummary.averageCostPerVehicle);
 }
 
 // ============================================
@@ -1222,10 +1564,13 @@ function renderVehicles() {
                     </div>
                 </div>
                 <div class="vehicle-actions" onclick="event.stopPropagation()">
-                    <button class="edit" onclick="editVehicle('${v.id}')" title="Edit">
+                    <button class="maintenance" onclick="quickMaintenance('${v.id}')" title="${t('vehicles.quickMaintenance')}">
+                        <i class="fas fa-wrench"></i>
+                    </button>
+                    <button class="edit" onclick="editVehicle('${v.id}')" title="${t('vehicles.edit')}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="delete" onclick="deleteVehicle('${v.id}')" title="Delete">
+                    <button class="delete" onclick="deleteVehicle('${v.id}')" title="${t('vehicles.delete')}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -1244,10 +1589,13 @@ function renderVehicles() {
                 </div>
                 <span class="vehicle-status status-${v.status}">${getVehicleStatusLabel(v.status)}</span>
                 <div class="vehicle-actions" onclick="event.stopPropagation()">
-                    <button class="edit" onclick="editVehicle('${v.id}')" title="Edit">
+                    <button class="maintenance" onclick="quickMaintenance('${v.id}')" title="${t('vehicles.quickMaintenance')}">
+                        <i class="fas fa-wrench"></i>
+                    </button>
+                    <button class="edit" onclick="editVehicle('${v.id}')" title="${t('vehicles.edit')}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="delete" onclick="deleteVehicle('${v.id}')" title="Delete">
+                    <button class="delete" onclick="deleteVehicle('${v.id}')" title="${t('vehicles.delete')}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -1690,13 +2038,55 @@ function closeDocumentModal() {
 function previewDocument(event) {
     const file = event.target.files[0];
     if (file) {
-        const preview = document.getElementById('filePreview');
-        preview.innerHTML = `
-            <i class="fas fa-file"></i>
-            <span>${file.name}</span>
-            <small>${(file.size / 1024).toFixed(2)} KB</small>
-        `;
-        preview.classList.add('has-file');
+        showFilePreview(file);
+    }
+}
+
+function showFilePreview(file) {
+    const preview = document.getElementById('filePreview');
+    const icon = getDocumentIcon(file.name);
+    preview.innerHTML = `
+        <i class="fas ${icon.icon}"></i>
+        <span>${file.name}</span>
+        <small>${(file.size / 1024).toFixed(2)} KB</small>
+    `;
+    preview.classList.add('has-file');
+}
+
+// Drag and Drop handlers
+function handleDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const dropzone = event.currentTarget;
+    dropzone.classList.add('drag-over');
+    const preview = dropzone.querySelector('.file-preview');
+    if (preview && !preview.classList.contains('has-file')) {
+        preview.querySelector('span').textContent = t('documents.dropHere');
+    }
+}
+
+function handleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const dropzone = event.currentTarget;
+    dropzone.classList.remove('drag-over');
+    const preview = dropzone.querySelector('.file-preview');
+    if (preview && !preview.classList.contains('has-file')) {
+        preview.querySelector('span').textContent = t('documents.dragDropFile');
+    }
+}
+
+function handleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const dropzone = event.currentTarget;
+    dropzone.classList.remove('drag-over');
+
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        const fileInput = document.getElementById('docFile');
+        fileInput.files = files;
+        showFilePreview(files[0]);
     }
 }
 
@@ -1907,6 +2297,16 @@ function openMaintenanceModalForVehicle(vehicleId) {
     }, 50);
     // Close the vehicle detail modal
     closeVehicleDetailModal();
+}
+
+// Quick maintenance from vehicle card (without closing other modals)
+function quickMaintenance(vehicleId) {
+    openMaintenanceModal();
+    // Pre-select the vehicle and set today's date
+    setTimeout(() => {
+        document.getElementById('maintVehicle').value = vehicleId;
+        document.getElementById('maintDate').value = new Date().toISOString().split('T')[0];
+    }, 50);
 }
 
 async function saveMaintenance(event) {
@@ -2713,6 +3113,11 @@ async function init() {
     renderMaintenance();
     updateSettingsPage();
     updateVehicleSelects();
+
+    // Show smart reminders after a short delay (let main UI load first)
+    setTimeout(() => {
+        showReminders();
+    }, 1000);
 }
 
 // Create datalist for car makes autocomplete
