@@ -94,6 +94,7 @@ const translations = {
         'nav.vehicles': 'Vehicles',
         'nav.documents': 'Documents',
         'nav.maintenance': 'Maintenance',
+        'nav.calendar': 'Calendar',
         'nav.settings': 'Settings',
 
         // Sidebar
@@ -383,7 +384,15 @@ const translations = {
         'costs.costPerVehicle': 'Cost per Vehicle',
         'costs.thisYear': 'This Year',
         'costs.allTime': 'All Time',
-        'costs.noCosts': 'No costs recorded'
+        'costs.noCosts': 'No costs recorded',
+
+        // Calendar
+        'calendar.today': 'Today',
+        'calendar.maintenance': 'Maintenance',
+        'calendar.insurance': 'Insurance Expiry',
+        'calendar.inspection': 'TÜV/Inspection',
+        'calendar.weekdays': ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        'calendar.months': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     },
     de: {
         // Navigation
@@ -391,6 +400,7 @@ const translations = {
         'nav.vehicles': 'Fahrzeuge',
         'nav.documents': 'Dokumente',
         'nav.maintenance': 'Wartung',
+        'nav.calendar': 'Kalender',
         'nav.settings': 'Einstellungen',
 
         // Sidebar
@@ -680,7 +690,15 @@ const translations = {
         'costs.costPerVehicle': 'Kosten pro Fahrzeug',
         'costs.thisYear': 'Dieses Jahr',
         'costs.allTime': 'Gesamt',
-        'costs.noCosts': 'Keine Kosten erfasst'
+        'costs.noCosts': 'Keine Kosten erfasst',
+
+        // Calendar
+        'calendar.today': 'Heute',
+        'calendar.maintenance': 'Wartung',
+        'calendar.insurance': 'Versicherung',
+        'calendar.inspection': 'TÜV/HU',
+        'calendar.weekdays': ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+        'calendar.months': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
     }
 };
 
@@ -1130,6 +1148,142 @@ function getFleetCostSummary() {
 }
 
 // ============================================
+// Calendar
+// ============================================
+let calendarDate = new Date();
+
+function renderCalendar() {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+
+    // Update header
+    const months = t('calendar.months');
+    document.getElementById('calendarMonthYear').textContent = `${months[month]} ${year}`;
+
+    // Render weekday headers
+    const weekdays = t('calendar.weekdays');
+    const weekdaysContainer = document.getElementById('calendarWeekdays');
+    weekdaysContainer.innerHTML = weekdays.map(day => `<div class="weekday">${day}</div>`).join('');
+
+    // Get calendar events
+    const events = getCalendarEvents(year, month);
+
+    // Calculate days
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+
+    // Render days
+    const daysContainer = document.getElementById('calendarDays');
+    let html = '';
+
+    // Empty cells for days before the first of the month
+    for (let i = 0; i < firstDay; i++) {
+        html += '<div class="calendar-day empty"></div>';
+    }
+
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayEvents = events.filter(e => e.date === dateStr);
+        const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+
+        html += `<div class="calendar-day${isToday ? ' today' : ''}${dayEvents.length > 0 ? ' has-events' : ''}" onclick="showDayEvents('${dateStr}')">
+            <span class="day-number">${day}</span>
+            ${dayEvents.length > 0 ? `
+                <div class="day-events">
+                    ${dayEvents.slice(0, 3).map(e => `<div class="event-dot ${e.type}" title="${e.title}"></div>`).join('')}
+                    ${dayEvents.length > 3 ? `<span class="more-events">+${dayEvents.length - 3}</span>` : ''}
+                </div>
+            ` : ''}
+        </div>`;
+    }
+
+    daysContainer.innerHTML = html;
+}
+
+function getCalendarEvents(year, month) {
+    const events = [];
+
+    // Add maintenance events
+    state.maintenance.forEach(m => {
+        const mDate = new Date(m.date);
+        if (mDate.getFullYear() === year && mDate.getMonth() === month) {
+            const vehicle = state.vehicles.find(v => v.id === m.vehicleId);
+            events.push({
+                date: m.date,
+                type: 'maintenance',
+                title: `${m.description}${vehicle ? ` - ${vehicle.make} ${vehicle.model}` : ''}`,
+                data: m
+            });
+        }
+    });
+
+    // Add insurance expiry events
+    state.vehicles.forEach(v => {
+        if (v.insuranceExpiry) {
+            const expDate = new Date(v.insuranceExpiry);
+            if (expDate.getFullYear() === year && expDate.getMonth() === month) {
+                events.push({
+                    date: v.insuranceExpiry,
+                    type: 'insurance',
+                    title: `${t('calendar.insurance')}: ${v.make} ${v.model}`,
+                    data: v
+                });
+            }
+        }
+    });
+
+    // Add inspection (TÜV) expiry events
+    state.vehicles.forEach(v => {
+        if (v.inspectionExpiry) {
+            const expDate = new Date(v.inspectionExpiry);
+            if (expDate.getFullYear() === year && expDate.getMonth() === month) {
+                events.push({
+                    date: v.inspectionExpiry,
+                    type: 'inspection',
+                    title: `${t('calendar.inspection')}: ${v.make} ${v.model}`,
+                    data: v
+                });
+            }
+        }
+    });
+
+    return events.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function changeMonth(delta) {
+    calendarDate.setMonth(calendarDate.getMonth() + delta);
+    renderCalendar();
+}
+
+function goToToday() {
+    calendarDate = new Date();
+    renderCalendar();
+}
+
+function showDayEvents(dateStr) {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    const events = getCalendarEvents(year, month).filter(e => e.date === dateStr);
+
+    if (events.length === 0) return;
+
+    // Format date for display
+    const date = new Date(dateStr);
+    const formattedDate = date.toLocaleDateString(state.settings.language === 'de' ? 'de-DE' : 'en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    // Show events in a toast or modal - for now, show as toast
+    const eventList = events.map(e => e.title).join('\n');
+    showToast(`${formattedDate}:\n${events.length} ${events.length === 1 ? 'event' : 'events'}`, 'info');
+}
+
+// ============================================
 // Supabase Data Functions
 // ============================================
 async function loadAllData() {
@@ -1385,9 +1539,20 @@ function refreshCurrentPage(pageName) {
         case 'maintenance':
             renderMaintenance();
             break;
+        case 'calendar':
+            renderCalendar();
+            break;
         case 'settings':
             updateSettingsPage();
             break;
+    }
+}
+
+// Navigate to a specific page (used by logo click)
+function navigateTo(pageName) {
+    const navItem = document.querySelector(`.nav-item[data-page="${pageName}"]`);
+    if (navItem) {
+        navItem.click();
     }
 }
 
