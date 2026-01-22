@@ -48,6 +48,32 @@ function logout() {
 }
 
 // ============================================
+// Global Error Handling
+// ============================================
+window.addEventListener('error', function(event) {
+    console.error('Global error:', event.error);
+    showToast(t('toast.generalError'), 'error');
+});
+
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('Unhandled promise rejection:', event.reason);
+    showToast(t('toast.generalError'), 'error');
+});
+
+// Offline detection
+window.addEventListener('online', function() {
+    showToast(t('toast.backOnline'), 'success');
+});
+
+window.addEventListener('offline', function() {
+    showToast(t('toast.offline'), 'warning');
+});
+
+function isOnline() {
+    return navigator.onLine;
+}
+
+// ============================================
 // Common Car Makes for Autocomplete
 // ============================================
 const commonCarMakes = [
@@ -310,14 +336,20 @@ const translations = {
         'toast.maintenanceDeleted': 'Maintenance record deleted',
         'toast.maintenanceDeleteError': 'Error deleting maintenance',
         'toast.dataExported': 'Data exported successfully',
-        'toast.importComingSoon': 'Import feature coming soon - use Supabase dashboard for bulk imports',
+        'toast.importConfirm': 'Import {vehicles} vehicles, {documents} documents, and {maintenance} maintenance records?',
+        'toast.importSuccess': '{count} items imported successfully',
+        'toast.importPartial': '{success} items imported, {error} failed',
         'toast.importError': 'Error importing data. Invalid file format.',
         'toast.dataCleared': 'All data cleared',
         'toast.clearError': 'Error clearing data',
+        'toast.generalError': 'An error occurred. Please try again.',
+        'toast.offline': 'You are offline. Some features may not work.',
+        'toast.backOnline': 'You are back online.',
 
         // General
         'general.unknown': 'Unknown',
         'general.cloudStorage': 'Cloud Storage',
+        'general.loading': 'Loading...',
 
         // Login
         'login.passwordPlaceholder': 'Enter password',
@@ -572,14 +604,20 @@ const translations = {
         'toast.maintenanceDeleted': 'Wartungseintrag gelöscht',
         'toast.maintenanceDeleteError': 'Fehler beim Löschen der Wartung',
         'toast.dataExported': 'Daten erfolgreich exportiert',
-        'toast.importComingSoon': 'Import-Funktion kommt bald - nutzen Sie das Supabase-Dashboard für Massenimporte',
+        'toast.importConfirm': '{vehicles} Fahrzeuge, {documents} Dokumente und {maintenance} Wartungseinträge importieren?',
+        'toast.importSuccess': '{count} Einträge erfolgreich importiert',
+        'toast.importPartial': '{success} Einträge importiert, {error} fehlgeschlagen',
         'toast.importError': 'Fehler beim Importieren der Daten. Ungültiges Dateiformat.',
         'toast.dataCleared': 'Alle Daten gelöscht',
         'toast.clearError': 'Fehler beim Löschen der Daten',
+        'toast.generalError': 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+        'toast.offline': 'Sie sind offline. Einige Funktionen funktionieren möglicherweise nicht.',
+        'toast.backOnline': 'Sie sind wieder online.',
 
         // General
         'general.unknown': 'Unbekannt',
         'general.cloudStorage': 'Cloud-Speicher',
+        'general.loading': 'Laden...',
 
         // Login
         'login.passwordPlaceholder': 'Passwort eingeben',
@@ -749,7 +787,10 @@ function isDateExpired(dateString) {
 
 function showLoading(show) {
     state.loading = show;
-    // Could add a loading spinner here
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.classList.toggle('active', show);
+    }
 }
 
 // ============================================
@@ -1285,7 +1326,7 @@ async function saveVehicle(event) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${generateId()}.${fileExt}`;
 
-        const { data: uploadData, error: uploadError } = await supabaseClientClient.storage
+        const { data: uploadData, error: uploadError } = await supabaseClient.storage
             .from('documents')
             .upload(`vehicle-images/${fileName}`, file);
 
@@ -2031,6 +2072,107 @@ async function exportData() {
     showToast(t('toast.dataExported'), 'success');
 }
 
+function exportToExcel() {
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+
+    // Vehicles sheet
+    const vehicleHeaders = [
+        t('vehicleModal.licensePlate'),
+        t('vehicleModal.vehicleType'),
+        t('vehicleModal.make'),
+        t('vehicleModal.model'),
+        t('vehicleModal.year'),
+        t('vehicleModal.color'),
+        t('vehicleModal.vin'),
+        t('vehicleModal.mileage'),
+        t('vehicleModal.fuelType'),
+        t('vehicleModal.status'),
+        t('vehicleModal.purchaseDate'),
+        t('vehicleModal.purchasePrice'),
+        t('vehicleModal.insuranceExpiry'),
+        t('vehicleModal.inspectionExpiry'),
+        t('vehicleModal.notes')
+    ];
+    const vehicleData = state.vehicles.map(v => [
+        v.licensePlate || '',
+        v.type || '',
+        v.make || '',
+        v.model || '',
+        v.year || '',
+        v.color || '',
+        v.vin || '',
+        v.mileage || '',
+        v.fuelType || '',
+        v.status || '',
+        v.purchaseDate || '',
+        v.purchasePrice || '',
+        v.insuranceExpiry || '',
+        v.inspectionExpiry || '',
+        v.notes || ''
+    ]);
+    const vehicleSheet = XLSX.utils.aoa_to_sheet([vehicleHeaders, ...vehicleData]);
+    XLSX.utils.book_append_sheet(wb, vehicleSheet, t('nav.vehicles'));
+
+    // Documents sheet
+    const docHeaders = [
+        t('documentModal.vehicle'),
+        t('documentModal.type'),
+        t('documentModal.name'),
+        t('documentModal.date'),
+        t('documentModal.expiry'),
+        t('documentModal.notes')
+    ];
+    const docData = state.documents.map(d => {
+        const vehicle = state.vehicles.find(v => v.id === d.vehicleId);
+        return [
+            vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.licensePlate})` : '',
+            d.type || '',
+            d.name || '',
+            d.date || '',
+            d.expiry || '',
+            d.notes || ''
+        ];
+    });
+    const docSheet = XLSX.utils.aoa_to_sheet([docHeaders, ...docData]);
+    XLSX.utils.book_append_sheet(wb, docSheet, t('nav.documents'));
+
+    // Maintenance sheet
+    const maintHeaders = [
+        t('maintenanceModal.vehicle'),
+        t('maintenanceModal.type'),
+        t('maintenanceModal.description'),
+        t('maintenanceModal.scheduledDate'),
+        t('maintenanceModal.status'),
+        t('maintenanceModal.mileage'),
+        t('maintenanceModal.cost'),
+        t('maintenanceModal.provider'),
+        t('maintenanceModal.notes')
+    ];
+    const maintData = state.maintenance.map(m => {
+        const vehicle = state.vehicles.find(v => v.id === m.vehicleId);
+        return [
+            vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.licensePlate})` : '',
+            m.type || '',
+            m.description || '',
+            m.date || '',
+            m.status || '',
+            m.mileage || '',
+            m.cost || '',
+            m.provider || '',
+            m.notes || ''
+        ];
+    });
+    const maintSheet = XLSX.utils.aoa_to_sheet([maintHeaders, ...maintData]);
+    XLSX.utils.book_append_sheet(wb, maintSheet, t('nav.maintenance'));
+
+    // Download
+    const filename = `fuhrparkpro-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, filename);
+
+    showToast(t('toast.dataExported'), 'success');
+}
+
 async function importData(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -2039,7 +2181,90 @@ async function importData(event) {
     reader.onload = async function(e) {
         try {
             const data = JSON.parse(e.target.result);
-            showToast(t('toast.importComingSoon'), 'warning');
+
+            // Validate structure
+            if (!data.vehicles && !data.documents && !data.maintenance) {
+                showToast(t('toast.importError'), 'error');
+                return;
+            }
+
+            const vehicleCount = data.vehicles?.length || 0;
+            const docCount = data.documents?.length || 0;
+            const maintCount = data.maintenance?.length || 0;
+
+            // Confirm import
+            const confirmMsg = t('toast.importConfirm')
+                .replace('{vehicles}', vehicleCount)
+                .replace('{documents}', docCount)
+                .replace('{maintenance}', maintCount);
+
+            showConfirmDialog(t('settings.importData'), confirmMsg, async () => {
+                showLoading(true);
+                let successCount = 0;
+                let errorCount = 0;
+
+                try {
+                    // Import vehicles
+                    if (data.vehicles && data.vehicles.length > 0) {
+                        for (const vehicle of data.vehicles) {
+                            try {
+                                const dbData = mapVehicleToDB(vehicle);
+                                const { error } = await supabaseClient.from('vehicles').insert([dbData]);
+                                if (error) errorCount++;
+                                else successCount++;
+                            } catch (err) {
+                                errorCount++;
+                            }
+                        }
+                    }
+
+                    // Import documents
+                    if (data.documents && data.documents.length > 0) {
+                        for (const doc of data.documents) {
+                            try {
+                                const dbData = mapDocumentToDB(doc);
+                                const { error } = await supabaseClient.from('documents').insert([dbData]);
+                                if (error) errorCount++;
+                                else successCount++;
+                            } catch (err) {
+                                errorCount++;
+                            }
+                        }
+                    }
+
+                    // Import maintenance
+                    if (data.maintenance && data.maintenance.length > 0) {
+                        for (const maint of data.maintenance) {
+                            try {
+                                const dbData = mapMaintenanceToDB(maint);
+                                const { error } = await supabaseClient.from('maintenance').insert([dbData]);
+                                if (error) errorCount++;
+                                else successCount++;
+                            } catch (err) {
+                                errorCount++;
+                            }
+                        }
+                    }
+
+                    // Reload data and update UI
+                    await loadAllData();
+                    renderVehicles();
+                    renderDocuments();
+                    renderMaintenance();
+                    updateDashboard();
+                    updateVehicleSelects();
+
+                    if (errorCount === 0) {
+                        showToast(t('toast.importSuccess').replace('{count}', successCount), 'success');
+                    } else {
+                        showToast(t('toast.importPartial').replace('{success}', successCount).replace('{error}', errorCount), 'warning');
+                    }
+                } catch (error) {
+                    console.error('Import error:', error);
+                    showToast(t('toast.importError'), 'error');
+                }
+                showLoading(false);
+            });
         } catch (error) {
             showToast(t('toast.importError'), 'error');
         }
