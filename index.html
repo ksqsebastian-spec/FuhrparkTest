@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <!-- Password Protection Overlay -->
@@ -31,6 +32,12 @@
                 <p class="login-error" id="loginError" data-i18n="login.error">Incorrect password</p>
             </form>
         </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p data-i18n="general.loading">Loading...</p>
     </div>
 
     <div class="app-container">
@@ -301,9 +308,14 @@
                                     <h4 data-i18n="settings.exportData">Export Data</h4>
                                     <p data-i18n="settings.exportDesc">Download all your fleet data as JSON</p>
                                 </div>
-                                <button class="btn btn-secondary" onclick="exportData()">
-                                    <i class="fas fa-download"></i> <span data-i18n="settings.export">Export</span>
-                                </button>
+                                <div class="btn-group">
+                                    <button class="btn btn-secondary" onclick="exportData()">
+                                        <i class="fas fa-download"></i> <span>JSON</span>
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="exportToExcel()">
+                                        <i class="fas fa-file-excel"></i> <span>Excel</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="setting-item">
                                 <div class="setting-info">
