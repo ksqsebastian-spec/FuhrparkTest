@@ -1285,7 +1285,7 @@ async function saveVehicle(event) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${generateId()}.${fileExt}`;
 
-        const { data: uploadData, error: uploadError } = await supabaseClientClient.storage
+        const { data: uploadData, error: uploadError } = await supabaseClient.storage
             .from('documents')
             .upload(`vehicle-images/${fileName}`, file);
 
