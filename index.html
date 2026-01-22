@@ -43,7 +43,7 @@
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
-            <div class="logo">
+            <div class="logo" onclick="navigateTo('dashboard')" style="cursor: pointer;">
                 <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <!-- 8-bit style sports car -->
                     <rect x="4" y="16" width="24" height="8" fill="currentColor"/>
@@ -74,6 +74,10 @@
                 <a href="#" class="nav-item" data-page="maintenance">
                     <i class="fas fa-wrench"></i>
                     <span data-i18n="nav.maintenance">Maintenance</span>
+                </a>
+                <a href="#" class="nav-item" data-page="calendar">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span data-i18n="nav.calendar">Calendar</span>
                 </a>
                 <a href="#" class="nav-item" data-page="settings">
                     <i class="fas fa-cog"></i>
@@ -313,6 +317,46 @@
                         <button class="btn btn-primary" onclick="openMaintenanceModal()">
                             <i class="fas fa-plus"></i> <span data-i18n="maintenance.schedule">Schedule Maintenance</span>
                         </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendar Page -->
+            <section class="page" id="calendar">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button class="btn btn-secondary" onclick="changeMonth(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h2 id="calendarMonthYear">January 2024</h2>
+                        <button class="btn btn-secondary" onclick="changeMonth(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="btn btn-secondary" onclick="goToToday()">
+                            <span data-i18n="calendar.today">Today</span>
+                        </button>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="calendar-weekdays" id="calendarWeekdays">
+                            <!-- Weekday headers -->
+                        </div>
+                        <div class="calendar-days" id="calendarDays">
+                            <!-- Calendar days -->
+                        </div>
+                    </div>
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot maintenance"></span>
+                            <span data-i18n="calendar.maintenance">Maintenance</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot insurance"></span>
+                            <span data-i18n="calendar.insurance">Insurance Expiry</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot inspection"></span>
+                            <span data-i18n="calendar.inspection">TÜV/Inspection</span>
+                        </div>
                     </div>
                 </div>
             </section>
